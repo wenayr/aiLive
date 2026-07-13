@@ -1,0 +1,45 @@
+schema: generator-candidate/v0
+identity:
+  id: replace-me
+  target_layer: null
+  status: proposed
+problem:
+  repeated_need: null
+  current_cost: null
+family:
+  outputs: []
+  variation_dimensions: []
+  exclusions: []
+source_of_truth:
+  kind: code
+  reference: null
+ownership_mode: CODE_OWNED
+inputs:
+  schema: null
+outputs:
+  schema: null
+validation:
+  local_checks: []
+  project_checks: []
+  oracle_limits: []
+fallback:
+  strategy: keep-current-code
+  rollback: null
+external_alternatives: []
+expected_effect:
+  applications_horizon: null
+  context_reduction: unknown
+  reliability_change: unknown
+  time_saved: unknown
+costs:
+  implementation: unknown
+  maintenance: unknown
+  integration: unknown
+  migration: unknown
+risks: []
+evidence: []
+unknowns: []
+decision:
+  recommendation: NO_GENERATOR
+  confidence: low
+  reviewer: null

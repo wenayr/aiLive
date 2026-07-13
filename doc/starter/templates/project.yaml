@@ -1,0 +1,36 @@
+schema: living-project/v0
+identity:
+  id: replace-me
+  title: Replace me
+  status: baseline
+  repository: .
+objectives:
+  primary: null
+  non_goals: []
+entrypoints:
+  overview: README.md
+  architecture: null
+  tests: null
+  runtime: null
+layers: []
+consumers: []
+acceptance:
+  commands: []
+  invariants: []
+constraints:
+  runtime: []
+  compatibility: []
+  security: []
+candidate_policy:
+  workspace: .candidates/
+  stable_read_only_during_analysis: true
+  independent_review_required: true
+external_policy:
+  network_search_allowed: false
+  quarantine_required: true
+  pin_version_or_hash: true
+reading_order:
+  - README.md
+  - project.yaml
+  - architecture:on-demand
+  - tests:on-demand

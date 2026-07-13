@@ -1,0 +1,39 @@
+schema: living-module/v0
+identity:
+  id: replace-me
+  version: 0.0.0-candidate
+  maturity: M5_MODULE_CANDIDATE
+core:
+  capability: null
+  responsibilities: []
+  non_responsibilities: []
+  invariants: []
+  public_contract: null
+profiles: []
+bindings: []
+interfaces:
+  library: null
+  cli: null
+  service: null
+  mcp: null
+dependencies:
+  required: []
+  optional: []
+permissions: []
+side_effects: []
+generators: []
+verification:
+  local: []
+  regression: []
+  consumers: []
+evidence:
+  baseline: null
+  candidate_bundle: null
+  reviews: []
+provenance:
+  extracted_from: []
+  external_sources: []
+lifecycle:
+  state: candidate
+  rollback: null
+  owner: null
