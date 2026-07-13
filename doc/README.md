@@ -5,17 +5,19 @@
 Для первого знакомства не нужно читать 4000-строчный исследовательский документ целиком.
 
 1. [Текущая модель живых модулей](./concept/CURRENT_MODEL.md).
-2. [Как соотносятся диалог, спецификация, инструкции и evidence](./concept/DIALOGUE_TO_RUNTIME.md).
-3. [Требования к генетическому модулю](./genetic-module/REQUIREMENTS.md).
-4. [Стандарт слоёв и фасадов](./starter/standards/LAYERS_AND_FACADES.md) и [оси зрелости](./starter/standards/MATURITY.md).
-5. [Решение о создании генератора](./genetic-module/GENERATOR_DECISION.md).
-6. [Первая сложная кампания](./starter/experiments/FIRST_CAMPAIGN.md) и [Runbook](./starter/RUNBOOK.md).
-7. [Design pressures](./concept/DESIGN_PRESSURES.md), [решения](./decisions/DECISIONS.md) и [открытые вопросы](./decisions/OPEN_QUESTIONS.md).
-8. [Полный исследовательский корпус v5](./concept/living_modules_genetic_architecture_v5.md) — для истории аргументов и глубокого контекста.
+2. [Ортогональная критическая оценка](./concept/ORTHOGONAL_ASSESSMENT.md).
+3. [Как соотносятся диалог, спецификация, инструкции и evidence](./concept/DIALOGUE_TO_RUNTIME.md).
+4. [Требования к генетическому модулю](./genetic-module/REQUIREMENTS.md).
+5. [Стандарт слоёв и фасадов](./starter/standards/LAYERS_AND_FACADES.md) и [оси зрелости](./starter/standards/MATURITY.md).
+6. [Решение о создании генератора](./genetic-module/GENERATOR_DECISION.md).
+7. [Первая сложная кампания](./starter/experiments/FIRST_CAMPAIGN.md) и [Runbook](./starter/RUNBOOK.md).
+8. [Design pressures](./concept/DESIGN_PRESSURES.md), [решения](./decisions/DECISIONS.md) и [открытые вопросы](./decisions/OPEN_QUESTIONS.md).
+9. [Рабочие заметки](./notes/README.md) и [полный исследовательский корпус v5](./concept/living_modules_genetic_architecture_v5.md) — для истории развития и глубокого контекста.
 
 ## Разделы
 
 - `concept/` — текущая модель, источник замысла, тонкие напряжения и исследовательский корпус.
+- `notes/` — новые мысли из диалога до проверки и продвижения в нормативную модель.
 - `genetic-module/` — нормативное ядро, решение о generator и импортированная общая operator-инструкция.
 - `starter/` — исполнимые стандарты, шаблоны, режимные prompts и эксперименты.
 - `decisions/` — принятые решения и неизвестные; они не теряются внутри длинного prompt.
