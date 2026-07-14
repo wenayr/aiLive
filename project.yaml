@@ -23,6 +23,7 @@ entrypoints:
   roadmap: doc/roadmap/MASTER_ROADMAP.md
 layers:
   - src/lab/resource/layer.yaml
+  - src/campaigns/genetic-simulation/layer.yaml
   - src/campaigns/realtime-simulation/layer.yaml
 consumers:
   - local operator in the web panel
@@ -30,11 +31,13 @@ consumers:
 acceptance:
   commands:
     - npm run verify
+    - npm run test:genetic
     - npm run acceptance:realtime
   invariants:
     - The UI cannot submit an arbitrary command line.
     - Only an allow-listed task definition can start a process.
     - A terminal run never transitions back to a non-terminal state.
+    - A genetic scan needs no Git commit and exposes no more than one pending agent action.
     - Runtime and debug facades stay distinct.
     - Same arena scenario and canonical command trace produce the same state hash.
     - An arena replay matches the authoritative headless trace.

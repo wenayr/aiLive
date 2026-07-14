@@ -15,9 +15,10 @@
         "start": "tsx src/lab/bindings/service/main.ts",
         "typecheck": "tsc --noEmit",
         "test": "tsx --test src/lab/**/*.test.ts",
+        "test:genetic": "tsx --test src/campaigns/genetic-simulation/**/*.test.ts",
         "test:realtime": "tsx --test src/campaigns/realtime-simulation/**/*.test.ts",
         "acceptance:realtime": "tsx src/campaigns/realtime-simulation/acceptance/run-headless.ts",
-        "verify": "npm run typecheck && npm run test && npm run test:realtime && npm run build"
+        "verify": "npm run typecheck && npm run test && npm run test:genetic && npm run test:realtime && npm run build"
     },
     "dependencies": {
         "express": "^5.2.1",

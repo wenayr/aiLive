@@ -1,0 +1,68 @@
+schema: living-layer/v0
+identity:
+  id: controlled-genetic-simulation
+  title: Controlled genetic module simulation
+  maturity: M0_EXPERIMENT
+roles:
+  - resource
+  - coordination
+  - verification
+entrypoints:
+  overview: ENTRY.md
+  public_api: contracts/genetic-simulation-contracts.ts
+  tests: resource/genetic-simulation.test.ts
+  use_instruction: ../../../AGENTS.md
+resources:
+  owned:
+    - file revision baseline
+    - observed change batches
+    - observations and active instructions
+    - pending single-agent action
+    - review history
+  canonical_types:
+    - tGeneticChangeBatch
+    - tGeneticObservation
+    - tGeneticInstruction
+    - tGeneticPendingAction
+operations:
+  - establish baseline without Git
+  - scan an explicit file snapshot
+  - submit Terra discovery or review result
+  - submit Luna inspection result
+facades:
+  runtime: []
+  consumer: []
+  debug:
+    - snapshot
+    - pending action
+  testing:
+    - deterministic id and clock injection
+  generator: []
+  agent:
+    - one explicit pending Terra or Luna action
+dependencies:
+  required: []
+  optional:
+    - workspace file sampler binding
+consumers:
+  - controlled local experiment
+verification:
+  contract_tests:
+    - baseline works without Git
+    - Terra discovery persists an instruction
+    - Luna receives only matching changed files
+    - Terra independently approves or rejects an instruction update
+  project_acceptance:
+    - npm run test:genetic
+generation:
+  maturity: G0_NONE
+  candidates: []
+genome:
+  observations: []
+  profiles: []
+  decisions: []
+reading_order:
+  - ENTRY.md
+  - contracts/genetic-simulation-contracts.ts
+  - resource/genetic-simulation.ts
+  - resource/genetic-simulation.test.ts
