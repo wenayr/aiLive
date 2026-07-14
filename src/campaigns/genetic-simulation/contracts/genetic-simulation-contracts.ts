@@ -139,3 +139,23 @@ export type tGeneticScanResult = {
     batch: tGeneticChangeBatch | null
     pendingAction: tGeneticPendingAction | null
 }
+
+export type tGeneticChangeEventSource = 'agent-patch-applied' | 'file-saved'
+
+export type tGeneticChangeEvent = {
+    source: tGeneticChangeEventSource
+    files: tGeneticFileSnapshot[]
+}
+
+export type tGeneticEventGateNotification = {
+    acceptedPaths: string[]
+    suppressedPaths: string[]
+    queuedFileCount: number
+}
+
+export type tGeneticEventGateFlush = {
+    status: 'idle' | 'blocked' | 'scanned'
+    queuedFileCount: number
+    batch: tGeneticChangeBatch | null
+    pendingAction: tGeneticPendingAction | null
+}

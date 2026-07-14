@@ -10,7 +10,7 @@ roles:
 entrypoints:
   overview: ENTRY.md
   public_api: contracts/genetic-simulation-contracts.ts
-  tests: resource/genetic-simulation.test.ts
+  tests: coordination/event-gate.test.ts
   use_instruction: ../../../AGENTS.md
 resources:
   owned:
@@ -27,6 +27,7 @@ resources:
 operations:
   - establish baseline without Git
   - scan an explicit file snapshot
+  - coalesce agent and filesystem change events into one scan
   - submit Terra discovery or review result
   - submit Luna inspection result
 facades:
@@ -40,10 +41,12 @@ facades:
   generator: []
   agent:
     - one explicit pending Terra or Luna action
+    - event gate flush
 dependencies:
   required: []
   optional:
     - workspace file sampler binding
+    - agent patch event binding
 consumers:
   - controlled local experiment
 verification:
@@ -51,6 +54,7 @@ verification:
     - baseline works without Git
     - Terra discovery persists an instruction
     - Luna receives only matching changed files
+    - duplicate agent and filesystem events produce one scan
     - Terra independently approves or rejects an instruction update
   project_acceptance:
     - npm run test:genetic

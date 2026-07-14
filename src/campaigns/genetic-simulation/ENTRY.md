@@ -14,3 +14,7 @@ The resource neither reads the filesystem nor calls a model. The workspace
 sampler is a separate binding; a future model adapter must call the pending
 action itself and submit the result explicitly. This makes every role call and
 every memory change observable and testable.
+
+`coordination/event-gate.ts` is the thin event entrypoint for this experiment.
+It coalesces a completed agent patch and a matching file-save revision, then
+requires an explicit `flush` before a scan can request a model action.
