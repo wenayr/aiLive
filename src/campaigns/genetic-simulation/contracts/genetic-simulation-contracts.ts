@@ -142,9 +142,14 @@ export type tGeneticScanResult = {
 
 export type tGeneticChangeEventSource = 'agent-patch-applied' | 'file-saved'
 
+export type tGeneticChangeEventFile = {
+    path: string
+    revision: string | null
+}
+
 export type tGeneticChangeEvent = {
     source: tGeneticChangeEventSource
-    files: tGeneticFileSnapshot[]
+    files: tGeneticChangeEventFile[]
 }
 
 export type tGeneticEventGateNotification = {

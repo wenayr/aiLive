@@ -1,5 +1,6 @@
 import type {
     tGeneticChangeEvent,
+    tGeneticChangeEventFile,
     tGeneticEventGateFlush,
     tGeneticEventGateNotification,
     tGeneticFileSnapshot,
@@ -8,7 +9,7 @@ import type { tGeneticSimulation } from '../resource/genetic-simulation'
 
 export function createGeneticEventGate(deps: {simulation: tGeneticSimulation}) {
     const knownRevisions = new Map<string, string>()
-    const queuedRevisions = new Map<string, string>()
+    const queuedRevisions = new Map<string, string | null>()
     let baselineEstablished = false
 
     function establishBaseline(files: tGeneticFileSnapshot[]) {
@@ -23,10 +24,11 @@ export function createGeneticEventGate(deps: {simulation: tGeneticSimulation}) {
         requireBaseline()
         const acceptedPaths: string[] = []
         const suppressedPaths: string[] = []
-        for (const file of normalizeFiles(event.files)) {
-            const pendingRevision = queuedRevisions.get(file.path)
-            const knownRevision = knownRevisions.get(file.path)
-            if (file.revision == pendingRevision || file.revision == knownRevision) {
+        for (const file of normalizeEventFiles(event.files)) {
+            const currentRevision = queuedRevisions.has(file.path)
+                ? queuedRevisions.get(file.path)!
+                : knownRevisions.get(file.path)
+            if (file.revision == currentRevision) {
                 suppressedPaths.push(file.path)
                 continue
             }
@@ -47,7 +49,10 @@ export function createGeneticEventGate(deps: {simulation: tGeneticSimulation}) {
         }
 
         const nextFiles = new Map(knownRevisions)
-        for (const [path, revision] of queuedRevisions) nextFiles.set(path, revision)
+        for (const [path, revision] of queuedRevisions) {
+            if (revision == null) nextFiles.delete(path)
+            else nextFiles.set(path, revision)
+        }
         const result = deps.simulation.control.scan(toFiles(nextFiles))
         knownRevisions.clear()
         for (const [path, revision] of nextFiles) knownRevisions.set(path, revision)
@@ -61,7 +66,7 @@ export function createGeneticEventGate(deps: {simulation: tGeneticSimulation}) {
     }
 
     function queuedFiles() {
-        return toFiles(queuedRevisions)
+        return toEventFiles(queuedRevisions)
     }
 
     function requireBaseline() {
@@ -88,7 +93,27 @@ function normalizeFiles(files: tGeneticFileSnapshot[]) {
         .sort(function byPath(a, b) { return a.path.localeCompare(b.path) })
 }
 
+function normalizeEventFiles(files: tGeneticChangeEventFile[]) {
+    const paths = new Set<string>()
+    return files
+        .map(function normalize(file) {
+            const path = file.path.trim().replaceAll('\\', '/')
+            const revision = file.revision == null ? null : file.revision.trim()
+            if (!path || revision == '') throw new Error('Event file path and revision are required')
+            if (paths.has(path)) throw new Error(`Duplicate event file: ${path}`)
+            paths.add(path)
+            return {path, revision}
+        })
+        .sort(function byPath(a, b) { return a.path.localeCompare(b.path) })
+}
+
 function toFiles(revisions: Map<string, string>) {
+    return [...revisions]
+        .map(function toSnapshot([path, revision]) { return {path, revision} })
+        .sort(function byPath(a, b) { return a.path.localeCompare(b.path) })
+}
+
+function toEventFiles(revisions: Map<string, string | null>) {
     return [...revisions]
         .map(function toSnapshot([path, revision]) { return {path, revision} })
         .sort(function byPath(a, b) { return a.path.localeCompare(b.path) })

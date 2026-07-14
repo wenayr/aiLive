@@ -18,3 +18,5 @@ every memory change observable and testable.
 `coordination/event-gate.ts` is the thin event entrypoint for this experiment.
 It coalesces a completed agent patch and a matching file-save revision, then
 requires an explicit `flush` before a scan can request a model action.
+A deletion is represented by a `null` revision, so the resource receives the
+same before-to-after change shape as it does for an edit.

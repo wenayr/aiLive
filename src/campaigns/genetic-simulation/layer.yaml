@@ -55,6 +55,7 @@ verification:
     - Terra discovery persists an instruction
     - Luna receives only matching changed files
     - duplicate agent and filesystem events produce one scan
+    - a watched file deletion reaches Luna as a before-to-null change
     - Terra independently approves or rejects an instruction update
   project_acceptance:
     - npm run test:genetic
