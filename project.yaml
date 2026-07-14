@@ -20,6 +20,7 @@ entrypoints:
   runtime: src/lab/bindings/service/main.ts
   catalog: doc/catalog/ai-live.yaml
   checkpoint: doc/checkpoints/CURRENT.md
+  genetic_sandbox: sandbox/genetic-module/README.md
   roadmap: doc/roadmap/MASTER_ROADMAP.md
 layers:
   - src/lab/resource/layer.yaml
@@ -32,13 +33,16 @@ acceptance:
   commands:
     - npm run verify
     - npm run test:genetic
+    - npm run test:sandbox:genetic
     - npm run acceptance:realtime
   invariants:
     - The UI cannot submit an arbitrary command line.
     - Only an allow-listed task definition can start a process.
     - A terminal run never transitions back to a non-terminal state.
     - A genetic scan needs no Git commit and exposes no more than one pending agent action.
+    - The L0 genetic sandbox never imports or executes model-written candidate code.
     - Runtime and debug facades stay distinct.
+    - A sandbox model can write only validated candidate paths and never stable source.
     - Same arena scenario and canonical command trace produce the same state hash.
     - An arena replay matches the authoritative headless trace.
     - Local execution is observed but is not described as a security sandbox.

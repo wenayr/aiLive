@@ -7,5 +7,6 @@
 - Исследовательская модель и starter-kit: [doc/README.md](./doc/README.md).
 - Подробный план первого этапа: [doc/lab/PHASE_1_PLAN.md](./doc/lab/PHASE_1_PLAN.md).
 - Первый исполнимый L1 campaign (`Networked Tank Arena`): [план BUILD](./doc/campaigns/realtime-simulation/BUILD_PLAN.md) и [слой](./src/campaigns/realtime-simulation/ENTRY.md).
+- Контролируемая песочница генетического модуля: [sandbox/genetic-module/README.md](./sandbox/genetic-module/README.md).
 - Запуск, проверка и ограничения: [doc/lab/OPERATIONS.md](./doc/lab/OPERATIONS.md).
 - Правила работы агента и кода: [AGENTS.md](./AGENTS.md).
