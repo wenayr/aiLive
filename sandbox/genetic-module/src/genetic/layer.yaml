@@ -1,0 +1,59 @@
+schema: living-layer/v0
+identity:
+  id: genetic-module-core
+  title: Genetic module core
+  maturity: M1_WORKING_BASELINE
+roles:
+  - resource
+  - coordination
+  - verification
+entrypoints:
+  overview: ENTRY.md
+  public_api: contracts/genetic-module-contracts.ts
+  tests: resource/genetic-module.test.ts
+  use_instruction: ../../AGENTS.md
+resources:
+  owned:
+    - file revision baseline
+    - observed change batches
+    - observations and instructions
+    - one pending agent action
+    - inspection and decision history
+operations:
+  - establish baseline without Git
+  - scan an explicit file snapshot
+  - select one instruction by watched paths
+  - submit owner discovery or review result
+  - submit reviewer inspection result
+  - restore a validated persisted snapshot
+facades:
+  control:
+    - establishBaseline
+    - scan
+    - submitOwner
+    - submitReviewer
+  debug:
+    - snapshot
+    - pendingAction
+dependencies:
+  required: []
+  optional:
+    - workspace sampler
+    - event gate
+    - completed-patch capture
+verification:
+  command: npm run test
+  invariants:
+    - baseline and scan need no Git repository
+    - at most one action is pending
+    - inspection receives only matching changed files
+    - persisted state is structurally validated and copied
+    - deletion is represented as an afterRevision of null
+generation:
+  maturity: G0_NONE
+  candidates: []
+reading_order:
+  - ENTRY.md
+  - contracts/genetic-module-contracts.ts
+  - resource/genetic-module.ts
+  - resource/genetic-module.test.ts

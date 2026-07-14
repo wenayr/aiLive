@@ -1,28 +1,9 @@
 {
-    "schema": "genetic-sandbox/v0",
-    "id": "exchange-adapter-repeat",
-    "title": "Controlled repeated exchange-adapter task",
-    "seedDirectory": "case/seed",
-    "trackedPaths": ["src/exchanges.mjs"],
-    "writablePaths": ["src/exchanges.mjs"],
-    "check": "case/checks/verify.mjs",
-    "checkKind": "static-source",
-    "goals": {
-        "first": "Add a Bybit quote adapter using the existing canonical normalization operation.",
-        "repeat": "Add an OKX quote adapter while preserving the established adapter contract.",
-        "repair": "Repair the OKX adapter according to the focused genetic inspection."
-    },
-    "discovery": {
-        "key": "exchange-adapter-normalization",
-        "summary": "Every exchange quote adapter must delegate symbol and price normalization to normalizeQuote.",
-        "watchedPaths": ["src/exchanges.mjs"],
-        "instruction": "When an exchange adapter changes, verify that it delegates to normalizeQuote instead of rebuilding the canonical quote directly."
-    },
-    "limits": {
-        "maxModelCalls": 5,
-        "maxFilesPerResponse": 1,
-        "maxResponseBytes": 8192,
-        "modelTimeoutMs": 30000,
-        "checkTimeoutMs": 5000
-    }
+    "schema": "genetic-codex-sandbox/v1",
+    "projectDirectory": "project",
+    "geneticDirectory": "genetic",
+    "templateDirectory": "template/project",
+    "trackedPaths": [
+        "src/exchanges.mjs"
+    ]
 }

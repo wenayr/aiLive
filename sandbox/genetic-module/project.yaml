@@ -1,0 +1,48 @@
+schema: responsible-genetic-sandbox/v1
+identity:
+  id: genetic-module-sandbox
+  title: Responsible genetic module sandbox
+  status: WORKING_BASELINE
+objective: >-
+  Let a Codex agent change a small live project while a persistent genetic
+  module notices saved-file changes, requests one focused judgment, and carries
+  an approved instruction into the next related change.
+entrypoints:
+  operation: README.md
+  complete_intent: DESIGN_INTENT.md
+  agent_rules: AGENTS.md
+  runbook: RUNBOOK.md
+directories:
+  implementation: src/
+  tools: tools/
+  template: template/project/
+  tasks: tasks/
+  live_project: project/
+  live_genetic_state: genetic/
+commands:
+  setup: npm run setup
+  status: npm run status
+  scan: npm run scan
+  resolve: npm run resolve
+  checks:
+    baseline: npm run check:baseline
+    bybit: npm run check:bybit
+    okx: npm run check:okx
+  verify: npm run verify
+invariants:
+  - project/ and genetic/ are siblings with different owners.
+  - A scan reads only configured tracked paths below project/.
+  - A command writes module state only below genetic/.
+  - No scan starts while another action is pending.
+  - State is restored and validated on every command.
+  - No Git commit or Git diff is required to detect a saved change.
+  - No external model or simulated model is called by the sandbox.
+  - A task milestone is selected explicitly and never inferred from batch count.
+reading_order:
+  - AGENTS.md
+  - README.md
+  - project.yaml
+  - genetic/STATUS.md
+  - genetic/pending.json
+  - the selected task in tasks/
+  - DESIGN_INTENT.md only when changing the module or evaluating its direction

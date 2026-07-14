@@ -1,12 +1,38 @@
-# aiLive — живые модули и лаборатория
+# AI Live — ответственная песочница генетического модуля
 
-Проект соединяет исследование «живых модулей» с исполнимой локальной лабораторией для проверяемых agent-задач.
+Репозиторий очищен до одного рабочего направления: самостоятельного проекта
+[`sandbox/genetic-module/`](./sandbox/genetic-module/). Родитель хранит его как
+обычный каталог, а Codex можно открыть прямо в этом каталоге как в отдельной
+рабочей области.
 
-Начать следует с [project.yaml](./project.yaml), затем с [foundation L0](./doc/lab/FOUNDATION.md) и [архитектуры](./doc/lab/ARCHITECTURE.md).
+Внутри агент видит:
 
-- Исследовательская модель и starter-kit: [doc/README.md](./doc/README.md).
-- Подробный план первого этапа: [doc/lab/PHASE_1_PLAN.md](./doc/lab/PHASE_1_PLAN.md).
-- Первый исполнимый L1 campaign (`Networked Tank Arena`): [план BUILD](./doc/campaigns/realtime-simulation/BUILD_PLAN.md) и [слой](./src/campaigns/realtime-simulation/ENTRY.md).
-- Контролируемая песочница генетического модуля: [sandbox/genetic-module/README.md](./sandbox/genetic-module/README.md).
-- Запуск, проверка и ограничения: [doc/lab/OPERATIONS.md](./doc/lab/OPERATIONS.md).
-- Правила работы агента и кода: [AGENTS.md](./AGENTS.md).
+- `project/` — маленький изменяемый проект;
+- `genetic/` — живое состояние генетического модуля;
+- `src/` — проверяемое ядро и файловую сессию;
+- `tasks/` и `template/` — воспроизводимый эксперимент;
+- `DESIGN_INTENT.md` — полный замысел, включая дальний динамический проект и
+  открытый вопрос о будущем дирижёре.
+
+Встроенного вызова модели нет: Codex уже является исполнителем внутри этой
+рабочей области. После законченной правки он запускает scan, отвечает на одно
+pending action и продолжает обычную разработку. Git commit для события не
+нужен.
+
+## Быстрая проверка
+
+Из корня репозитория:
+
+```powershell
+npm ci
+npm run verify
+npm run status
+```
+
+Живая локальная сессия уже создаётся командой `npm run setup`, которая никогда
+не перезаписывает существующие `project/` и `genetic/`. Полный рабочий протокол
+описан в [README песочницы](./sandbox/genetic-module/README.md) и
+[RUNBOOK](./sandbox/genetic-module/RUNBOOK.md).
+
+Нормативная выжимка дискуссии находится в [doc/](./doc/README.md), фактический
+baseline — в [GENETIC_BASELINE.md](./doc/evidence/GENETIC_BASELINE.md).

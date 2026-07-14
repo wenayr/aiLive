@@ -1,11 +1,15 @@
 node_modules/
 dist/
-.laboratory/
-.candidates/
 coverage/
-playwright-report/
-test-results/
 *.tsbuildinfo
 
-# Editor state belongs to the local workstation, not to the laboratory baseline.
+# Live state belongs to the local sandbox session.
+sandbox/genetic-module/project/
+sandbox/genetic-module/genetic/
+
+# Historical runtime directories from the previous laboratory are not source.
+.laboratory/
+.candidates/
+
+# Local editor state.
 .idea/

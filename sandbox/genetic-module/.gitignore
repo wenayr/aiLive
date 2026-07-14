@@ -1,0 +1,7 @@
+node_modules/
+coverage/
+*.tsbuildinfo
+
+# Live task code and genetic state are local experiment data.
+/project/
+/genetic/

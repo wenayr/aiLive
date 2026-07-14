@@ -1,46 +1,20 @@
 {
     "name": "ai-live",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "private": true,
-    "type": "module",
-    "description": "Observable local laboratory for agent tasks and living-module experiments",
+    "description": "Host repository for the standalone genetic module sandbox",
     "engines": {
         "node": ">=20"
     },
+    "workspaces": [
+        "sandbox/genetic-module"
+    ],
     "scripts": {
-        "dev": "concurrently --kill-others-on-fail --names service,web --prefix-colors blue,green \"npm run dev:service\" \"npm run dev:web\"",
-        "dev:service": "tsx watch src/lab/bindings/service/main.ts",
-        "dev:web": "vite",
-        "build": "npm run typecheck && vite build",
-        "start": "tsx src/lab/bindings/service/main.ts",
-        "typecheck": "tsc --noEmit",
-        "test": "tsx --test src/lab/**/*.test.ts",
-        "test:genetic": "tsx --test src/campaigns/genetic-simulation/**/*.test.ts",
-        "test:sandbox:genetic": "tsx --test sandbox/genetic-module/**/*.test.ts",
-        "test:realtime": "tsx --test src/campaigns/realtime-simulation/**/*.test.ts",
-        "sandbox:genetic": "tsx sandbox/genetic-module/run.ts",
-        "sandbox:genetic:smoke": "tsx sandbox/genetic-module/run.ts --fixture-model",
-        "acceptance:realtime": "tsx src/campaigns/realtime-simulation/acceptance/run-headless.ts",
-        "verify": "npm run typecheck && npm run test && npm run test:genetic && npm run test:sandbox:genetic && npm run test:realtime && npm run build"
-    },
-    "dependencies": {
-        "express": "^5.2.1",
-        "react": "^19.2.0",
-        "react-dom": "^19.2.0",
-        "socket.io": "^4.8.3",
-        "socket.io-client": "^4.8.3",
-        "wenay-common2": "file:../wenay-common2/dist",
-        "wenay-react2": "file:../weay-react2/dist"
-    },
-    "devDependencies": {
-        "@types/express": "^5.0.6",
-        "@types/node": "^25.3.5",
-        "@types/react": "^19.2.14",
-        "@types/react-dom": "^19.2.3",
-        "@vitejs/plugin-react": "^6.0.1",
-        "concurrently": "^9.2.1",
-        "tsx": "^4.20.6",
-        "typescript": "^5.9.3",
-        "vite": "^8.0.0"
+        "setup": "npm --prefix sandbox/genetic-module run setup",
+        "status": "npm --prefix sandbox/genetic-module run status",
+        "scan": "npm --prefix sandbox/genetic-module run scan",
+        "resolve": "npm --prefix sandbox/genetic-module run resolve",
+        "check": "npm --prefix sandbox/genetic-module run check --",
+        "verify": "npm --prefix sandbox/genetic-module run verify"
     }
 }

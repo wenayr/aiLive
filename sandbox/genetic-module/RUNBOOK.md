@@ -1,144 +1,114 @@
-# Genetic sandbox runbook
+# Runbook: контролируемый прогон
 
-This is the binding procedure for the first controlled genetic-module
-experiment. It separates three questions:
+Цель прогона — получить наблюдаемые данные о поведении модуля на небольшой
+реальной правке. Не нужно симулировать модель: Codex выполняет проектную задачу,
+а затем явно отвечает за роли, которые запросил модуль.
 
-1. can an external model be constrained to a candidate workspace;
-2. does the real genetic resource route a saved change into one pending action;
-3. does a learned instruction improve a later model patch?
+## 1. Вход в отдельную рабочую область
 
-The included fixture answers only the first two at plumbing level. It does not
-answer the third question.
+Открой в Codex каталог `sandbox/genetic-module/`, не `project/` отдельно. Так
+агент видит код задачи, генетическое состояние и управляющие команды, но не
+нуждается в контексте всего родительского проекта.
 
-## Fixed layout
-
-```text
-sandbox/genetic-module/                   tracked recipe, controller and case
-.candidates/genetic-sandbox/<run-id>/     mutable candidate; ignored by Git
-.laboratory/genetic-sandbox/<run-id>/     complete live trace; ignored by Git
-doc/evidence/genetic-simulation/           reviewed conclusions; tracked
-```
-
-There is no Git repository or initial commit inside the candidate. The genetic
-trigger must see pre-commit work, so the baseline is the SHA-256 snapshot made
-when the candidate is prepared. Git controls the stable recipe and curated
-evidence only.
-
-## Mode A — protocol probe
-
-Use this mode to inspect exactly what a provider adapter would receive:
+Проверь состояние:
 
 ```powershell
-npm run sandbox:genetic -- --run-id=genetic-prepare-<unique-id>
+npm run status
 ```
 
-Then:
-
-1. confirm the printed workspace is below `.candidates/genetic-sandbox/`;
-2. confirm artifacts are below `.laboratory/genetic-sandbox/`;
-3. open `requests/01-code-first.json`;
-4. verify actual source, its SHA, allowed path, limits, contract, and `policy`;
-5. open `result.json` and confirm `status` is `awaiting-response`;
-6. open `report.md` and confirm zero calls and zero candidate changes;
-7. stop.
-
-This is deliberately a non-resumable probe. Starting a second process with the
-same run id is rejected. Do not manually apply a response to its candidate or
-describe it as a completed external-model run.
-
-## Mode B — deterministic plumbing smoke
+Если команда сообщает, что сессия не создана, выполни один раз:
 
 ```powershell
-npm run sandbox:genetic:smoke -- --run-id=genetic-smoke-<unique-id>
+npm run setup
 ```
 
-The expected controlled chain is:
+Не удаляй живые каталоги ради повторного `setup`. Перезапуск эксперимента с
+очисткой `project/` и `genetic/` — отдельное осознанное действие оператора.
 
-1. simulated `code-first` adds Bybit;
-2. the real genetic resource emits a Terra discovery action;
-3. the controller installs the case's predefined normalization observation;
-4. simulated `code-repeat` adds a deliberately drifting OKX adapter;
-5. `inspect-repeat` reports the focused instruction violation;
-6. `code-repair` delegates OKX to `normalizeQuote`;
-7. `inspect-repair` reports clear.
+## 2. Проектная правка
 
-Only five entries are model calls because steps 2 and 3 are resource/controller
-operations. Every model record must say `provider: fixture`,
-`model: luna-simulated-v0`, and `simulated: true`.
+1. Прочитай выбранную задачу в `tasks/`.
+2. Изучи только релевантные файлы в `project/`.
+3. Внеси один завершённый логический набор изменений.
+4. При необходимости запусти локальную предметную проверку, но не подгоняй код
+   под заранее известный генетический ответ.
+5. Закончив правку, выполни `npm run scan`.
 
-This smoke proves routing, response validation, bounded candidate writes,
-revision capture, duplicate suppression, instruction selection, one pending
-action, response archiving, and static evaluation. The fixture chooses answers
-by request id and discovery text comes from `sandbox.json`; it proves neither
-autonomous discovery nor improved model behavior.
+`scan` сравнивает содержимое отслеживаемых файлов с сохранённым baseline. Он не
+зависит от Git commit, push, watcher или опроса на каждом ответе агента. Момент
+сканирования — явная граница законченной правки.
 
-## Mode C — real external adapter
+Если изменений нет, статус останется `ready`. Если изменения есть, модуль
+сохранит batch и ровно одно действие в `genetic/pending.json`. Пока оно не
+разрешено, следующий `scan` запрещён.
 
-A complete real run must start and finish in one process by injecting
-`tSandboxModelCaller` into `createGeneticSandbox`. The repository intentionally
-contains no provider SDK, API key handling, network call, package installation,
-or built-in resume mechanism. Adding one first requires the project's separate
-acquisition and runtime decision.
+## 3. Ответ модулю
 
-The wrapper must:
+1. Открой `genetic/STATUS.md` и `genetic/pending.json`.
+2. Проверь `action.id`, `agent`, `kind`, выбранные файлы и before/after content.
+3. Скопируй подходящий объект из `responseTemplate` или
+   `alternativeResponseTemplates` в `genetic/response.json`.
+4. Не меняй `actionId` и `kind`. Замени шаблонный текст результатом узкого
+   анализа текущего действия.
+5. Выполни `npm run resolve`.
 
-1. create a unique run id;
-2. construct `createGeneticSandbox({projectRoot, runId, callModel})`;
-3. expose no tools, shell, filesystem, Git, browser, or MCP surface to the model;
-4. send only the supplied request value;
-5. route builder and inspector roles to the intended model or separate models;
-6. return `{provider, model, simulated: false, raw, usage}` with serializable raw;
-7. honor the supplied `AbortSignal` and enforce its own provider timeout;
-8. call `sandbox.control.run()` once;
-9. place no credentials or secrets in candidate or artifacts.
+Для `owner/discover` выбери `record` и запиши конкретную повторяемую
+закономерность, стабильный ключ, минимальный набор `watchedPaths` и проверяемую
+инструкцию. Если данных недостаточно, выбери `skip` с короткой причиной. Не
+превращай первую случайность в широкое архитектурное правило.
 
-The controller archives each request before the call and each serializable raw
-response before validating metadata or response content. It validates request
-id, protocol, kind, allowlist, base SHA, file count, and byte limit before any
-candidate write.
+Для `reviewer/inspect` проверь только выбранную инструкцию на показанном
+изменении. Вердикт `clear` означает соответствие; `issue` требует точного
+описания и, при необходимости, `proposedInstruction`.
 
-## Instruction for the responding AI
+`reviewer/inspect` с вердиктом `clear` сразу подтверждает правило и завершает
+цепочку. Только `issue` создаёт новое действие `owner/review-inspection`. Тогда
+оцени свидетельство и выбери:
 
-For every request:
+- `keep` — правило верно и остаётся без изменений;
+- `refine` — правило полезно, но текст нужно сделать точнее;
+- `retire` — правило оказалось шумным или больше не применимо.
 
-1. read only `goal`, `files`, `instructions`, `limits`, `policy`, and contract;
-2. do not infer access to files that were not supplied;
-3. do not call tools or issue commands;
-4. for code, return a complete allowed-file replacement with exact base SHA;
-5. for inspection, evaluate only the supplied change against one instruction;
-6. return one JSON object and nothing around it;
-7. when context is insufficient, report that limitation instead of inventing.
+Один Codex может выполнить все эти роли последовательно, явно меняя точку
+оценки. Отдельный reviewer-агент полезен для более строгого эксперимента, но не
+нужен для первого рабочего цикла.
 
-## What to inspect
+## 4. Завершение цикла
 
-| Artifact | Question |
+Повторяй чтение pending, запись response и `resolve`, пока
+`npm run status` не покажет `ready`. Затем выполни:
+
+```powershell
+npm run check:bybit # либо check:okx — точная команда указана в задаче
+npm run verify
+```
+
+Число batches не считается признаком завершённого milestone.
+
+Проверь согласованность артефактов:
+
+| Артефакт | Что он доказывает |
 | --- | --- |
-| `manifest.json` | Which case, limits, directories, and model mode ran? |
-| `requests/*.json` | What exact context and instruction did the model see? |
-| `responses/*.json` | Which provider/model answered; was it simulated? |
-| `patches/*.json` | What before/after content and SHA were accepted? |
-| `genetic/state-*.json` | When was the instruction installed and selected? |
-| `trace.ndjson` | Was request → response → patch → action ordering preserved? |
-| `evaluation/check.json` | Did the static AST contract pass without execution? |
-| `result.json` | Is the run failed, waiting, rejected, or ready for review? |
-| `report.md` | Does the summary agree with detailed artifacts? |
+| `genetic/state.json` | baseline, batches, наблюдения, инструкции и проверки сохранены |
+| `genetic/pending.json` | сейчас требуется ровно одно решение агента |
+| `genetic/history/` | какой явный ответ был принят на каждом шаге |
+| `genetic/trace.ndjson` | порядок setup, scan и resolve |
+| `genetic/STATUS.md` | краткое текущее состояние для следующего запуска Codex |
+| вывод `check` | проект удовлетворяет предметной проверке |
+| вывод `verify` | механика песочницы и типы проходят тесты |
 
-The post-write `file-saved` record is synthetic and tests only revision
-deduplication. There is no watcher or polling loop. The authoritative trigger
-is exact touched-path capture immediately after the controller's accepted write.
+## 5. Какие данные считать результатом
 
-## Evidence decision
+Один успешный цикл доказывает только сохранение состояния, маршрутизацию и
+работу границ. Эффективность оценивай на серии сопоставимых повторений:
 
-Mark the control boundary successful only if out-of-scope and stale responses
-perform zero writes, every call is attributable, no action remains pending, and
-stable source is unchanged.
+- была ли инструкция выбрана только для релевантного файла;
+- предотвратила ли она повтор уже известной ошибки;
+- сколько дала ложных срабатываний;
+- сколько раз её сохранили, уточнили или сняли;
+- сколько дополнительных действий и времени потребовал модуль;
+- стала ли следующая аналогичная задача дешевле или надёжнее baseline без него.
 
-Do not claim genetic effectiveness from the fixture. That needs a later A/B run
-on the same repeated task: baseline without the selected instruction versus
-candidate with it, recording models, tokens, errors, repairs, latency, and an
-independent review.
-
-Never promote automatically. `candidate-ready-for-review` means only that the
-focused inspection cleared and the fixture-level structural AST check passed.
-Human review stays mandatory. Candidate code is never imported or executed by
-this L0 sandbox.
+Не используй внешний API или fixture, чтобы искусственно завершить цепочку.
+Не редактируй `state.json`, `pending.json`, историю или trace вручную. Не
+называй эту архитектурную песочницу защитой от недоверенного исполняемого кода.

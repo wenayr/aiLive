@@ -1,0 +1,28 @@
+{
+    "name": "@ai-live/genetic-module-sandbox",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "description": "Standalone Codex workspace for a persistent genetic module experiment",
+    "engines": {
+        "node": ">=20"
+    },
+    "scripts": {
+        "setup": "tsx tools/session-cli.ts setup",
+        "status": "tsx tools/session-cli.ts status",
+        "scan": "tsx tools/session-cli.ts scan",
+        "resolve": "tsx tools/session-cli.ts resolve",
+        "check": "node tools/check-project.mjs",
+        "check:baseline": "node tools/check-project.mjs baseline",
+        "check:bybit": "node tools/check-project.mjs bybit",
+        "check:okx": "node tools/check-project.mjs okx",
+        "typecheck": "tsc --noEmit",
+        "test": "tsx --test src/**/*.test.ts",
+        "verify": "npm run typecheck && npm run test"
+    },
+    "devDependencies": {
+        "@types/node": "^25.0.0",
+        "tsx": "^4.20.0",
+        "typescript": "^5.9.0"
+    }
+}

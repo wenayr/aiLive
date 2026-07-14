@@ -1,76 +1,95 @@
-# Genetic module sandbox
+# Responsible genetic sandbox
 
-This directory is the tracked recipe for controlling an external coding model
-and observing the genetic module around its patches. Runtime data never lives
-here.
+Это самостоятельный проект для проверки одной идеи: может ли небольшой
+генетический модуль ненавязчиво следить за повторяющимися решениями в коде,
+выделять узкую инструкцию и возвращать её на следующем релевантном изменении.
+Исполнитель — Codex, открытый в этом каталоге. Генетический модуль не пишет код
+за агента и не является внешней моделью.
 
-## Directories
+## Устройство
 
 ```text
-sandbox/genetic-module/                 tracked recipe and controller
-.candidates/genetic-sandbox/<run-id>/   mutable candidate workspace, ignored
-.laboratory/genetic-sandbox/<run-id>/   requests, responses and results, ignored
-doc/evidence/genetic-simulation/         optional curated conclusions only
+sandbox/genetic-module/
+├── project/          изменяемый рабочий проект; создаётся setup, игнорируется Git
+├── genetic/          живое состояние, pending и журнал; игнорируется Git
+├── template/project/ исходный снимок для первого setup
+├── tasks/            небольшие экспериментальные задачи
+├── src/genetic/      каноническое ядро решений
+├── src/session/      файловая сессия и сохранение состояния
+└── tools/            локальные команды
 ```
 
-The controller gives a model file contents and SHA revisions, but no filesystem
-or terminal. The model returns full-file replacements. The controller validates
-the path, expected SHA, response size, and request id before writing the
-candidate. Stable project files are never model targets.
+Родительский проект видит весь каталог как внутреннюю песочницу. Если открыть
+именно `sandbox/genetic-module/` в Codex, корнем рабочей области становится эта
+папка: `project/` и `genetic/` находятся рядом, а лишний контекст родительского
+репозитория не требуется.
 
-The registered final check is static: it reads candidate source but never
-imports or executes model-written code. This L0 directory is not an OS security
-sandbox. Behavioral execution of external-model code therefore stays out of
-scope until a real isolation or an explicit trust gate exists.
+`project/` — код, над которым работает агент. `genetic/` — отдельная память и
+живое состояние: baseline, история изменений, наблюдения, активные инструкции,
+проверки и одно текущее действие. Генетический модуль — логика маршрутизации и
+переходов состояния. Ответственной песочницей является весь этот каталог,
+который сводит код модуля, его память, рабочий проект и проверки.
 
-## Commands
+## Первый запуск
 
-Prepare a candidate and inspect the first provider-neutral request:
+Из этого каталога:
 
 ```powershell
-npm run sandbox:genetic
+npm ci
+npm run setup
+npm run status
 ```
 
-The command intentionally stops with `awaiting-response`. It does not invent a
-Luna answer. Inspect the printed run directory and its `requests/` folder.
-This probe does not resume in a second process. A complete real run starts once
-with an explicitly injected `callModel` adapter; no network or credential
-adapter is bundled.
+`setup` выполняется один раз: копирует `template/project/` в `project/`, снимает
+SHA-256 baseline отслеживаемых файлов и создаёт `genetic/`. Если живые каталоги
+уже существуют, команда останавливается и ничего не перезаписывает. Git commit
+для baseline не нужен.
 
-Run the complete deterministic plumbing smoke with an explicitly simulated
-fixture model:
+## Один рабочий цикл
+
+```text
+прочитать задачу → изменить project/ → scan → ответить на pending → resolve
+                  → при новом pending снова ответить/resolve → check → verify
+```
+
+Команды:
 
 ```powershell
-npm run sandbox:genetic:smoke
+npm run status
+npm run scan
+npm run resolve
+npm run check:baseline
+npm run check:bybit
+npm run check:okx
+npm run verify
 ```
 
-Run sandbox contract tests:
+После `scan` открой `genetic/pending.json`. В нём находятся действие, точный
+контекст изменённых файлов, основной `responseTemplate` и допустимые
+`alternativeResponseTemplates`. Запиши выбранный шаблон как объект в
+`genetic/response.json`, отредактируй вывод по фактам и выполни
+`npm run resolve`. Не меняй `actionId`.
 
-```powershell
-npm run test:sandbox:genetic
-```
+На первом релевантном изменении обычно появляется `owner/discover`: агент либо
+формулирует наблюдение и узкую инструкцию, либо честно выбирает `skip`, если
+одной правки недостаточно. При следующем изменении наблюдаемого пути появляется
+`reviewer/inspect`. Вердикт `clear` подтверждает инструкцию и завершает цепочку;
+только `issue` создаёт `owner/review-inspection`, где инструкция сохраняется,
+уточняется или снимается. В каждый момент разрешено только одно действие.
 
-## Controlled run
+Milestone проверки выбирается явно. Он не выводится из числа генетических
+batches: одна задача может потребовать несколько правок.
 
-1. Read `AGENTS.md`, `sandbox.json`, and `case/GOAL.md`.
-2. Start a unique run. Confirm that the candidate is below `.candidates/` and
-   the report directory is below `.laboratory/`.
-3. For a complete run, inject one approved provider adapter before starting.
-   The controller gives that adapter only the structured request.
-4. Archive the JSON-serializable raw response before validating its metadata or
-   response contract, including malformed or rejected responses.
-5. Let the controller validate and apply it. Never apply model text manually to
-   stable code.
-6. Observe the patch capture, pending genetic action, focused inspection, and
-   allow-listed check in the run trace.
-7. Read `result.json`, `report.md`, `genetic/state-final.json`, and
-   `evaluation/check.json` before drawing a conclusion.
-8. Promote nothing automatically. Curate evidence only after an independent
-   review of the candidate and complete trace.
+Журнал остаётся в `genetic/trace.ndjson`, принятые ответы — в
+`genetic/history/`, полное состояние — в `genetic/state.json`. Это позволяет
+оценивать не красивый рассказ, а число полезных срабатываний, ложных тревог,
+уточнений и повторных ошибок.
 
-The included case deliberately repeats an exchange-adapter task. The first
-change establishes a normalization instruction. The second change violates it;
-the focused inspection requests one repair, and the fixed candidate is checked
-deterministically.
+Подробная процедура эксперимента находится в [RUNBOOK.md](./RUNBOOK.md).
 
-The exact operator and AI procedure is in [`RUNBOOK.md`](./RUNBOOK.md).
+## Ограничение
+
+«Песочница» здесь означает отдельный архитектурный контекст и явные границы
+ответственности. Это не контейнер и не изоляция ОС. `npm run check` исполняет
+локальный код из `project/`, поэтому сюда нельзя помещать недоверенный код или
+секреты.

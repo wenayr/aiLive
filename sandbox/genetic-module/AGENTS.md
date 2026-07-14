@@ -1,57 +1,61 @@
-# Genetic sandbox — binding instruction
+# Genetic module sandbox — правила агента
 
-These rules apply to every AI working inside this directory or responding to a
-request produced by its controller.
+Этот каталог открывается в Codex как самостоятельный рабочий проект. Агент в
+нём сам выполняет задачу в `project/`, а генетический модуль наблюдает за
+завершёнными изменениями и хранит инструкции в `genetic/`. Здесь нет Luna,
+внешнего model API, provider adapter или ответов-fixture.
 
-## Read first
+## Что прочитать
 
-1. `README.md`.
-2. `sandbox.json`.
-3. `case/GOAL.md` and the exact request JSON saved for the current run.
-4. `RUNBOOK.md` before operating a complete run.
+1. `README.md` и `project.yaml`.
+2. `genetic/STATUS.md`, если песочница уже инициализирована.
+3. `genetic/pending.json`, если в статусе есть ожидающее действие.
+4. Релевантную задачу из `tasks/` и файлы в `project/`.
+5. `RUNBOOK.md` перед полным экспериментальным циклом.
 
-## External-model boundary
+## Границы ответственности
 
-- Treat the candidate workspace path from the controller as the only writable
-  project. Never edit the stable repository.
-- Do not use a terminal, Git, network, package manager, credentials, publish,
-  MCP tools, or arbitrary filesystem access.
-- Read only file contents included in the request. Ask the controller for a new
-  request if required context is absent.
-- Return one JSON value matching the response contract in the request. Markdown
-  around JSON, implicit edits, tool calls, and commands are invalid responses;
-  the adapter result and its `raw` field must remain JSON-serializable.
-- A code response may replace only the paths listed in `limits.allowedPaths`.
-  Each replacement must repeat the exact `baseRevision` from the request and
-  provide the complete new content, or `null` for deletion.
-- An inspection response evaluates only the supplied instruction and changed
-  files. It must not expand into a general code review.
+- В обычном прогоне агент редактирует только `project/`.
+- `genetic/state.json`, `pending.json`, `STATUS.md`, `trace.ndjson`, `content/`
+  и `history/` принадлежат модулю. Не исправляй их вручную.
+- Единственная ручная запись в `genetic/` — `response.json`: это явный ответ
+  агента на текущее действие из `pending.json`.
+- `src/`, `tools/`, `template/`, конфигурацию и этот документ меняют только в
+  отдельной задаче на развитие самой песочницы.
+- Не добавляй вызов внешней модели, API-ключи, provider adapter или заранее
+  подготовленный «правильный» ответ. Исполнитель здесь — агент Codex, открытый
+  непосредственно в этом каталоге.
+- Родительский Git хранит рецепт песочницы. Для обнаружения правки первый
+  commit не нужен: модуль сравнивает снимки файлов после явного `scan`.
 
-## Controller procedure
+## Обязательный цикл
 
-1. Create a unique candidate below `.candidates/genetic-sandbox/<run-id>/`.
-2. Copy only the tracked seed and establish a SHA baseline.
-3. Save every request before invoking a model and every raw response before
-   parsing it.
-4. Validate request id, schema, allowlist, base SHA, file count, and byte limit
-   before any write. Invalid or stale responses perform zero writes.
-5. Apply accepted replacements only inside the candidate workspace.
-6. Immediately call patch capture for the exact touched paths, then explicitly
-   flush the genetic gate.
-7. Permit only one pending Terra or Luna action. Resolve it before another
-   model request or patch.
-8. Run only the registered static-source check named by `sandbox.json`; it
-   must read, never import or execute, candidate code.
-9. Save requests, responses, patches, genetic snapshots, check result, usage,
-   and final verdict under `.laboratory/genetic-sandbox/<run-id>/`.
-10. Never merge, commit, push, promote, install, publish, or delete evidence as
-    part of a sandbox run.
+1. Выполни `npm run status`. Если состояния ещё нет — один раз выполни
+   `npm run setup`; существующие `project/` и `genetic/` не перезаписывай.
+2. Прочитай задачу и внеси один законченный логический набор правок в
+   `project/`. Не запускай `scan` на каждом нажатии клавиши.
+3. Выполни `npm run scan`. До разрешения pending-действия больше не меняй
+   отслеживаемые файлы и не запускай следующий `scan`.
+4. Если создан `genetic/pending.json`, изучи только указанную там роль,
+   инструкцию, изменённые файлы и их содержимое.
+5. Скопируй подходящее значение из `responseTemplate` или
+   `alternativeResponseTemplates` в новый `genetic/response.json`, сохрани
+   `actionId` без изменений и замени шаблонные поля честным результатом анализа.
+   Для слабой первой закономерности используй готовый `discover/skip`: не
+   выдумывай инструкцию ради заполнения памяти.
+6. Выполни `npm run resolve`. Если появился следующий pending, повтори шаги
+   4–6. `inspect/clear` завершает цикл; `owner/review-inspection` появляется
+   только после `inspect/issue`.
+7. Когда pending отсутствует, выполни проверку, указанную в задаче
+   (`npm run check:bybit` или `npm run check:okx`), затем `npm run verify`.
+8. Зафиксируй результат эксперимента по фактическим `state`, `history`, `trace`
+   и проверкам; не объявляй эффект модуля без сравнимых данных.
 
-This is a controlled local development workspace, not an OS security sandbox.
-Untrusted executable code, secrets, and unrestricted network access remain out
-of scope.
+Роли `owner` и `reviewer` — разные точки решения, а не обязательные разные
+модели. Один и тот же Codex может последовательно выполнить обе роли. Для более
+сильной независимой оценки reviewer можно передать отдельному агенту, но это не
+условие работы механизма.
 
-`npm run sandbox:genetic` is a non-resumable protocol probe. A complete
-external-model run requires an explicit wrapper that injects the `callModel`
-port before the run starts; the repository intentionally ships no provider,
-credential, network, or package-install adapter.
+Это архитектурная песочница разработки, а не граница безопасности ОС. Не
+помещай в `project/` недоверенный код или секреты и не считай запуск `check`
+безопасной изоляцией.
