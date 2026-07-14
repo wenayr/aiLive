@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.laboratory/
+.candidates/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# Editor state belongs to the local workstation, not to the laboratory baseline.
+.idea/

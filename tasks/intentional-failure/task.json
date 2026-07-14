@@ -1,0 +1,14 @@
+{
+    "id": "intentional-failure",
+    "version": "0.1.0",
+    "title": "Intentional failure probe",
+    "summary": "Exits with a known non-zero code so that failure evidence can be inspected.",
+    "kind": "probe",
+    "capabilities": ["workspace-read", "process-local"],
+    "timeoutMs": 5000,
+    "command": {
+        "program": "node",
+        "args": ["scripts/run.mjs"]
+    },
+    "instruction": "TASK.md"
+}

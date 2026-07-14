@@ -1,12 +1,11 @@
-# aiLive — живые модули
+# aiLive — живые модули и лаборатория
 
-Материалы проекта находятся в [doc/README.md](./doc/README.md).
+Проект соединяет исследование «живых модулей» с исполнимой локальной лабораторией для проверяемых agent-задач.
 
-Каталог продолжает диалог ChatGPT «Модульная система агентов» и содержит:
+Начать следует с [project.yaml](./project.yaml), затем с [foundation L0](./doc/lab/FOUNDATION.md) и [архитектуры](./doc/lab/ARCHITECTURE.md).
 
-- каноническое описание идеи;
-- исследовательский master prompt;
-- операционную инструкцию генетического модуля;
-- восстановленный практический starter-kit для первых экспериментов.
-
-Начинать работу следует с `doc/README.md`, а не с архива или исходного большого документа.
+- Исследовательская модель и starter-kit: [doc/README.md](./doc/README.md).
+- Подробный план первого этапа: [doc/lab/PHASE_1_PLAN.md](./doc/lab/PHASE_1_PLAN.md).
+- Первый исполнимый L1 campaign (`Networked Tank Arena`): [план BUILD](./doc/campaigns/realtime-simulation/BUILD_PLAN.md) и [слой](./src/campaigns/realtime-simulation/ENTRY.md).
+- Запуск, проверка и ограничения: [doc/lab/OPERATIONS.md](./doc/lab/OPERATIONS.md).
+- Правила работы агента и кода: [AGENTS.md](./AGENTS.md).

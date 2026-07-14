@@ -1,0 +1,14 @@
+{
+    "id": "seeded-probe",
+    "version": "0.1.0",
+    "title": "Deterministic seeded probe",
+    "summary": "Computes a stable hash from the laboratory seed and writes a checked artifact.",
+    "kind": "probe",
+    "capabilities": ["workspace-read", "artifact-write", "process-local"],
+    "timeoutMs": 5000,
+    "command": {
+        "program": "node",
+        "args": ["scripts/run.mjs"]
+    },
+    "instruction": "TASK.md"
+}

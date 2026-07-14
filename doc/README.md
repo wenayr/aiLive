@@ -11,7 +11,7 @@
 5. [Стандарт слоёв и фасадов](./starter/standards/LAYERS_AND_FACADES.md) и [оси зрелости](./starter/standards/MATURITY.md).
 6. [Решение о создании генератора](./genetic-module/GENERATOR_DECISION.md).
 7. [Первая сложная кампания](./starter/experiments/FIRST_CAMPAIGN.md) и [Runbook](./starter/RUNBOOK.md).
-8. [Design pressures](./concept/DESIGN_PRESSURES.md), [решения](./decisions/DECISIONS.md) и [открытые вопросы](./decisions/OPEN_QUESTIONS.md).
+8. [Master roadmap (100 пунктов)](./roadmap/MASTER_ROADMAP.md), [текущий checkpoint](./checkpoints/CURRENT.md), [Design pressures](./concept/DESIGN_PRESSURES.md), [решения](./decisions/DECISIONS.md) и [открытые вопросы](./decisions/OPEN_QUESTIONS.md).
 9. [Рабочие заметки](./notes/README.md) и [полный исследовательский корпус v5](./concept/living_modules_genetic_architecture_v5.md) — для истории развития и глубокого контекста.
 
 ## Разделы
@@ -22,6 +22,8 @@
 - `starter/` — исполнимые стандарты, шаблоны, режимные prompts и эксперименты.
 - `decisions/` — принятые решения и неизвестные; они не теряются внутри длинного prompt.
 - `evidence/` — traces и независимые evaluations реальных запусков.
+- `checkpoints/` — короткие event-driven сводки: что доказано, что неизвестно и какой следующий проверяемый ход.
+- `roadmap/` — единая очередь работ с зависимостями, воротами и критериями готовности.
 - `prompts/` — исследовательский master prompt для передачи контекста, не runtime-router.
 - `archive/` — исходные импортированные артефакты v5 и их provenance.
 
@@ -31,6 +33,8 @@
 - Обязательное поведение: `genetic-module/REQUIREMENTS.md` и технические policies среды.
 - Конкретный запуск: один файл из `starter/prompts/`.
 - Факт полезности: `evidence/`, tests и воспроизводимые артефакты.
+- Текущее собранное состояние: `checkpoints/CURRENT.md`; он всегда ссылается на первичные evidence.
+- Текущий порядок работ: `roadmap/MASTER_ROADMAP.md`; он не отменяет requirements и decisions.
 - История замысла: полный v5, design pressures и ссылка на исходную беседу.
 
 Встроенные prompts внутри v5 и импортированный `GENETIC_BASE_OPERATOR_PROMPT_v2.md` считаются историческими общими версиями. Актуальные рабочие режимы находятся в `starter/prompts/`.

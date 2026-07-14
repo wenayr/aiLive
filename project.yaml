@@ -1,0 +1,68 @@
+schema: living-project/v0
+identity:
+  id: ai-live
+  title: AI Live Laboratory
+  status: L1_TRANSPORT_PROFILE
+  repository: .
+objectives:
+  primary: >-
+    Run explicitly registered local laboratory tasks, inspect their state and
+    traces in a browser, and turn each experiment into reproducible evidence.
+  non_goals:
+    - Docker or VM isolation in the foundation phase
+    - arbitrary remote terminal access
+    - SSH publication without an explicit user command
+    - MCP, marketplace, autonomous evolution, or package extraction
+entrypoints:
+  overview: README.md
+  architecture: doc/lab/ARCHITECTURE.md
+  tests: doc/lab/OPERATIONS.md#verification
+  runtime: src/lab/bindings/service/main.ts
+  catalog: doc/catalog/ai-live.yaml
+  checkpoint: doc/checkpoints/CURRENT.md
+  roadmap: doc/roadmap/MASTER_ROADMAP.md
+layers:
+  - src/lab/resource/layer.yaml
+  - src/campaigns/realtime-simulation/layer.yaml
+consumers:
+  - local operator in the web panel
+  - future agent execution binding
+acceptance:
+  commands:
+    - npm run verify
+    - npm run acceptance:realtime
+  invariants:
+    - The UI cannot submit an arbitrary command line.
+    - Only an allow-listed task definition can start a process.
+    - A terminal run never transitions back to a non-terminal state.
+    - Runtime and debug facades stay distinct.
+    - Same arena scenario and canonical command trace produce the same state hash.
+    - An arena replay matches the authoritative headless trace.
+    - Local execution is observed but is not described as a security sandbox.
+constraints:
+  runtime:
+    - Node.js >= 20
+    - local development runner and headless L1 simulation only
+  compatibility:
+    - React 19.2.x single-runtime policy
+    - wenay-common2 1.0.76 transport contract
+    - wenay-react2 1.0.52 controller/UI contract
+  security:
+    - no shell interpolation
+    - no publish operation in the L0 runtime facade
+    - task work directories are bounded below tasks/
+candidate_policy:
+  workspace: .candidates/
+  stable_read_only_during_analysis: true
+  independent_review_required: true
+external_policy:
+  network_search_allowed: false
+  quarantine_required: true
+  pin_version_or_hash: true
+reading_order:
+  - README.md
+  - project.yaml
+  - AGENTS.md
+  - doc/lab/FOUNDATION.md
+  - doc/lab/ARCHITECTURE.md
+  - relevant layer.yaml
