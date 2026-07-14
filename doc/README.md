@@ -10,7 +10,7 @@
 4. [Требования к генетическому модулю](./genetic-module/REQUIREMENTS.md).
 5. [Стандарт слоёв и фасадов](./starter/standards/LAYERS_AND_FACADES.md) и [оси зрелости](./starter/standards/MATURITY.md).
 6. [Решение о создании генератора](./genetic-module/GENERATOR_DECISION.md).
-7. [Первая сложная кампания](./starter/experiments/FIRST_CAMPAIGN.md), [Runbook](./starter/RUNBOOK.md) и [200 задач проверки genetic supervision](./campaigns/genetic-supervision/DETAILED_PLAN.md).
+7. [Первая сложная кампания](./starter/experiments/FIRST_CAMPAIGN.md) и [Runbook](./starter/RUNBOOK.md).
 8. [Master roadmap (100 пунктов)](./roadmap/MASTER_ROADMAP.md), [текущий checkpoint](./checkpoints/CURRENT.md), [Design pressures](./concept/DESIGN_PRESSURES.md), [решения](./decisions/DECISIONS.md) и [открытые вопросы](./decisions/OPEN_QUESTIONS.md).
 9. [Рабочие заметки](./notes/README.md) и [полный исследовательский корпус v5](./concept/living_modules_genetic_architecture_v5.md) — для истории развития и глубокого контекста.
 

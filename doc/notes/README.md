@@ -14,6 +14,5 @@
 
 ## Заметки
 
-- [2026-07-14 — change-triggered genetic supervision](./2026-07-14-change-triggered-genetic-supervision.md).
 - [2026-07-14 — динамический проект как дальняя точка лаборатории](./2026-07-14-dynamic-project-vision.md).
 - [2026-07-13 — созревание модуля, MCP-проекция и генетический поиск](./2026-07-13-genetic-module-evolution.md).
