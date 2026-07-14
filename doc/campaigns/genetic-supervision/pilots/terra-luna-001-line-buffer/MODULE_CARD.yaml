@@ -1,0 +1,55 @@
+schema: module-card/v0
+id: lab-line-buffer-seed
+version: 0.1.0
+maturity: experimental-seed
+purpose: >-
+  Convert arbitrary stdout/stderr chunks into completed text lines while
+  retaining one incomplete tail until more data arrives or flush is called.
+canonical_source:
+  path: src/lab/utility/line-buffer.ts
+  ownership: code-owned
+use_when:
+  - consuming process output delivered in arbitrary chunks
+  - preserving line order without emitting an incomplete tail prematurely
+known_contract:
+  - push returns only lines completed by LF or CRLF delimiters
+  - push retains the final incomplete segment as internal tail
+  - flush returns a non-empty remaining tail and consumes it
+  - a second flush without a new tail returns an empty list
+  - chunk boundaries must not change logical line content or order
+allowed_surface:
+  factory: createLineBuffer
+  facade:
+    - push
+    - flush
+pilot_policy:
+  source_changes: forbidden
+  candidate_kind: test-only
+  test_style:
+    - node:test
+    - node:assert/strict
+    - named non-trivial helpers only when needed
+    - single quotes
+    - four spaces
+    - no semicolons
+luna_check_vectors:
+  - assertions reflect current canonical source rather than invented semantics
+  - LF and CRLF chunk-boundary behaviour is covered
+  - partial tail is not emitted before completion or flush
+  - flush consumption and repeated flush are covered
+  - tests are independent and create a fresh buffer
+  - no production implementation change is proposed
+unknowns:
+  - Whether empty completed lines should become a durable normative contract is not decided by this pilot.
+  - Whether this seed deserves permanent registry admission depends on later evidence.
+escalation:
+  suspicious:
+    - assertion contradicts canonical source
+    - required behaviour dimension is missing
+    - candidate changes production code
+  unknown:
+    - expected semantics cannot be derived from declared source and task
+  forbidden:
+    - request a third Terra iteration
+    - request stable promotion
+    - request network, package install or new authority
