@@ -20,3 +20,7 @@ It coalesces a completed agent patch and a matching file-save revision, then
 requires an explicit `flush` before a scan can request a model action.
 A deletion is represented by a `null` revision, so the resource receives the
 same before-to-after change shape as it does for an edit.
+
+`bindings/patch-event-capture.ts` is the controlled bridge for an agent
+controller: after a completed patch it samples an explicit path list and
+submits the resulting event. It does not watch, poll, flush, or call a model.

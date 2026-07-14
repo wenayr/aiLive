@@ -28,6 +28,7 @@ operations:
   - establish baseline without Git
   - scan an explicit file snapshot
   - coalesce agent and filesystem change events into one scan
+  - capture a completed patch from an explicit real-file path list
   - submit Terra discovery or review result
   - submit Luna inspection result
 facades:
@@ -47,6 +48,7 @@ dependencies:
   optional:
     - workspace file sampler binding
     - agent patch event binding
+    - controlled patch event capture binding
 consumers:
   - controlled local experiment
 verification:
@@ -56,6 +58,7 @@ verification:
     - Luna receives only matching changed files
     - duplicate agent and filesystem events produce one scan
     - a watched file deletion reaches Luna as a before-to-null change
+    - a manual patch capture reads real revisions without Git
     - Terra independently approves or rejects an instruction update
   project_acceptance:
     - npm run test:genetic

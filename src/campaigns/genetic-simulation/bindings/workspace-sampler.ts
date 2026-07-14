@@ -39,6 +39,8 @@ export function createWorkspaceSampler(deps: {rootDirectory: string}) {
     return {runtime: {sample}}
 }
 
+export type tWorkspaceSampler = ReturnType<typeof createWorkspaceSampler>
+
 function normalizePath(path: string) {
     const normalized = path.trim().replaceAll('\\', '/')
     if (!normalized) throw new Error('Sample path is required')
