@@ -111,9 +111,11 @@ test('field test uses body movement, mouse aim and destructible generated blocks
     const initialY = player.y
 
     snapshot.blocks.forEach(function clear(candidate) { candidate.alive = false })
-    field.runtime.update({delta: .1, now: 100, input: {forward: true, aim: {x: 10, y: player.y}}})
+    field.runtime.update({delta: .1, now: 100, input: {forward: true, aim: {x: player.x + 4, y: player.y}}})
     assert.ok(player.y < initialY)
     assert.equal(player.turret, 0)
+    assert.equal(snapshot.arena.size, 130)
+    assert.equal(snapshot.enemies.length, 3)
 
     block.x = player.x
     block.y = player.y - .35

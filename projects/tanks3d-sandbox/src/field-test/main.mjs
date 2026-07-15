@@ -11,6 +11,7 @@ const field = createFieldTest({mapKind})
 const renderer = createRenderer({canvas})
 let previous = performance.now()
 let paused = false
+const camera = {x: field.api.snapshot().player.x, y: field.api.snapshot().player.y}
 
 mapPicker.value = mapKind
 mapPicker.addEventListener('change', function changeMap() {
@@ -42,16 +43,19 @@ function frame(now) {
     const delta = Math.min((now - previous) / 1000, .04)
     previous = now
     if (!paused) field.runtime.update({delta, now, input})
-    renderer.render(field.api.snapshot())
+    const snapshot = field.api.snapshot()
+    camera.x += (snapshot.player.x - camera.x) * Math.min(delta * 8, 1)
+    camera.y += (snapshot.player.y - camera.y) * Math.min(delta * 8, 1)
+    renderer.render({...snapshot, camera})
     const status = field.api.status()
-    hud.textContent = `${paused ? 'PAUSED · ' : ''}${status.mapKind} · objects ${status.objects} · destroyed ${status.destroyed}`
+    hud.textContent = `${paused ? 'PAUSED · ' : ''}${status.mapKind} · 130×130 · hull ${status.hp} · enemies ${status.enemies} · objects ${status.objects} · destroyed ${status.destroyed}`
     requestAnimationFrame(frame)
 }
 
 function unproject(screenX, screenY) {
     const difference = (screenX - 480) / 30
-    const sum = (screenY - 84) / 15
-    return {x: (sum + difference) / 2, y: (sum - difference) / 2}
+    const sum = (screenY - 320) / 15
+    return {x: camera.x + (sum + difference) / 2, y: camera.y + (sum - difference) / 2}
 }
 
 requestAnimationFrame(frame)

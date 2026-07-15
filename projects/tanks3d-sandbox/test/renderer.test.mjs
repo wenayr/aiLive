@@ -26,6 +26,17 @@ test('renderer hides destroyed field blocks while retaining a single player tank
     assert.ok(context.calls > 0)
 })
 
+test('renderer projects a large field through an explicit player camera', () => {
+    const context = createContext()
+    const renderer = createRenderer({canvas: {getContext: function getContext() { return context }}})
+    const arena = createArena({seed: 'violet', kind: 'shards', size: 130})
+    const player = createTank({id: 'player', archetype: 'player', x: 12, y: 12})
+
+    renderer.render({arena, player, enemies: [], shells: [], effects: [], cores: [], blocks: [], camera: {x: 12, y: 12}})
+
+    assert.ok(context.calls > 0)
+})
+
 function createContext() {
     const context = {calls: 0, globalAlpha: 1}
     for (const name of ['clearRect', 'fillRect', 'beginPath', 'moveTo', 'lineTo', 'closePath', 'fill', 'arc', 'save', 'restore', 'translate', 'rotate', 'fillText']) {

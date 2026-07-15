@@ -2,7 +2,7 @@ schema: product-sandbox/v1
 identity:
   id: tanks3d-sandbox
   title: Tanks 3D generator experiment
-  status: ITERATION_SIX_V11_FIELD_TEST
+  status: ITERATION_SEVEN_V12_LARGE_FIELD
 objective: >-
   Build a playable browser game from ordinary product modules whose three real
   repeating resources are generated from compact source-of-truth inputs.
@@ -31,7 +31,8 @@ acceptance:
     - Player aim is supplied in world coordinates and controls the barrel direction.
     - A selected map supplies safe core pads; collection converts one core into one turbo burst.
     - A defeated hostile produces score and one visible combat effect.
-    - The field test contains one player tank, ten map kinds and only destructible blocks.
+    - The field test renders a 130 by 130 world through a player camera.
+    - Field blocks and enemy tanks each have hit points and can be destroyed.
 reading_order:
   - README.md
   - project.yaml
