@@ -9,6 +9,9 @@ aiLive/
 │   ├── sandbox.json               явная связь только с projects/tableer/
 │   ├── tasks/                     реальные следующие продуктовые задачи
 │   └── memory/                    локальное runtime-состояние, не в Git
+├── projects/tanks3d-simple/       прямой сравнительный browser-product
+├── projects/tanks3d-sandbox/      generator browser-product
+├── development/tanks3d-sandbox/   внешний agent-layer generator-варианта
 └── sandbox/genetic-module/        переиспользуемый engine и его mechanics probe
 ```
 
@@ -23,6 +26,9 @@ aiLive/
 | --- | --- | --- |
 | `projects/tableer/` | table resource, filter, facade, продуктовые тесты | агента, genetic memory, pending actions, runtime-инструкции разработки |
 | `development/tableer/` | инструкции агенту, привязку цели, реальные задачи, локальную память | копию Tableer, классические модули Tableer, встроенный provider/model API |
+| `projects/tanks3d-simple/` | прямой browser runtime и ручной игровой контент | generator contract, agent runtime, memory |
+| `projects/tanks3d-sandbox/` | генераторы арены, танков и волн, game runtime, renderer | agent runtime, memory, инструкции разработки |
+| `development/tanks3d-sandbox/` | привязку к generator-варианту, задачу второй итерации, локальную memory | копию игры или модули её runtime |
 | `sandbox/genetic-module/` | closure-based engine, файловую сессию, tests, mechanics probe | конкретную бизнес-архитектуру Tableer |
 
 ## Минимальный рабочий цикл

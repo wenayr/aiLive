@@ -2,7 +2,7 @@ schema: product-development-host/v1
 identity:
   id: ai-live
   title: AI Live product and development sandbox host
-  status: TABLEER_STARTING_PLATFORM
+  status: TABLEER_PLATFORM_AND_TANKS3D_COMPARISON
 objective: >-
   Develop ordinary product projects through explicit external development
   sandboxes. Start with Tableer while retaining the genetic engine as a small,
@@ -12,8 +12,13 @@ entrypoints:
   foundation: doc/FOUNDATION.md
   genetic_module: doc/GENETIC_MODULE.md
   architecture: doc/PROJECT_AND_DEVELOPMENT_SANDBOXES.md
-  product_project: projects/tableer/
-  development_sandbox: development/tableer/
+  product_projects:
+    - projects/tableer/
+    - projects/tanks3d-simple/
+    - projects/tanks3d-sandbox/
+  development_sandboxes:
+    - development/tableer/
+    - development/tanks3d-sandbox/
   genetic_engine: sandbox/genetic-module/
 acceptance:
   command: npm run verify
@@ -25,6 +30,7 @@ acceptance:
     - State survives a new CLI process.
     - No provider, model API, fixture model, browser, or shell controller is built in.
     - Live development memory is ignored by Git.
+    - Tanks3D simple and sandbox variants remain separate product projects.
 reading_order:
   - README.md
   - project.yaml
@@ -33,3 +39,5 @@ reading_order:
   - doc/PROJECT_AND_DEVELOPMENT_SANDBOXES.md
   - development/tableer/AGENTS.md
   - projects/tableer/project.yaml
+  - development/tanks3d-sandbox/AGENTS.md
+  - projects/tanks3d-sandbox/project.yaml

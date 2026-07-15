@@ -9,13 +9,20 @@
     "workspaces": [
         "sandbox/genetic-module",
         "projects/tableer",
-        "development/tableer"
+        "development/tableer",
+        "projects/tanks3d-simple",
+        "projects/tanks3d-sandbox",
+        "development/tanks3d-sandbox"
     ],
     "scripts": {
         "setup": "npm --prefix development/tableer run setup",
         "status": "npm --prefix development/tableer run status",
         "scan": "npm --prefix development/tableer run scan",
         "resolve": "npm --prefix development/tableer run resolve",
-        "verify": "npm --prefix sandbox/genetic-module run verify && npm --prefix projects/tableer run verify && npm --prefix development/tableer run verify"
+        "tanks:sandbox:setup": "npm --prefix development/tanks3d-sandbox run setup",
+        "tanks:sandbox:status": "npm --prefix development/tanks3d-sandbox run status",
+        "tanks:sandbox:scan": "npm --prefix development/tanks3d-sandbox run scan",
+        "tanks:sandbox:resolve": "npm --prefix development/tanks3d-sandbox run resolve",
+        "verify": "npm --prefix sandbox/genetic-module run verify && npm --prefix projects/tableer run verify && npm --prefix development/tableer run verify && npm --prefix projects/tanks3d-simple run verify && npm --prefix projects/tanks3d-sandbox run verify && npm --prefix development/tanks3d-sandbox run verify"
     }
 }

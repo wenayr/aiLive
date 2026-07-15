@@ -10,6 +10,13 @@
 переиспользуемым engine и механическим probe. Его старые локальные `project/`
 и `genetic/` не являются Tableer и не определяют устройство новой площадки.
 
+Первый контролируемый сравнительный прогон находится в
+[`projects/tanks3d-simple/`](./projects/tanks3d-simple/) и
+[`projects/tanks3d-sandbox/`](./projects/tanks3d-sandbox/). Второй вариант
+наблюдается извне из
+[`development/tanks3d-sandbox/`](./development/tanks3d-sandbox/); результаты
+не выданы за доказанную эффективность и сохранены в evidence.
+
 ## Быстрая проверка
 
 Из корня репозитория:

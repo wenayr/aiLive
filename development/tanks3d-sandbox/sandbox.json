@@ -1,0 +1,11 @@
+{
+    "schema": "project-development-sandbox/v1",
+    "targetDirectory": "../../projects/tanks3d-sandbox",
+    "memoryDirectory": "memory",
+    "trackedPaths": [
+        "src/generators/create-arena.mjs",
+        "src/generators/create-tank.mjs",
+        "src/generators/create-wave.mjs",
+        "src/game/create-game.mjs"
+    ]
+}

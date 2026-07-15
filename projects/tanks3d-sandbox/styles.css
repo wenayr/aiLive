@@ -1,0 +1,15 @@
+:root {
+    color: #edf1ff;
+    background: #0d1020;
+    font-family: Inter, system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; }
+main { width: min(960px, 100vw); padding: 20px; }
+.panel { display: flex; align-items: baseline; gap: 20px; }
+.panel h1 { margin: 0; font-size: clamp(28px, 5vw, 52px); }
+.panel p { color: #adb6d9; }
+.eyebrow { color: #9e8bff !important; font-size: 11px; letter-spacing: .16em; }
+canvas { width: 100%; height: auto; display: block; border: 1px solid #6254a9; background: #171636; box-shadow: 0 24px 80px #0008; }
+.hud { min-height: 1.5em; color: #d9ddff; }

@@ -1,0 +1,35 @@
+schema: product-sandbox/v1
+identity:
+  id: tanks3d-sandbox
+  title: Tanks 3D generator experiment
+  status: ITERATION_ONE
+objective: >-
+  Build a playable browser game from ordinary product modules whose three real
+  repeating resources are generated from compact source-of-truth inputs.
+modules:
+  arena_generator:
+    path: src/generators/create-arena.mjs
+    responsibility: Produce deterministic walls and safe spawn pads from a seed.
+  tank_generator:
+    path: src/generators/create-tank.mjs
+    responsibility: Produce validated tank entities from named archetypes.
+  wave_generator:
+    path: src/generators/create-wave.mjs
+    responsibility: Produce enemy spawns from arena pads and a round number.
+  game_runtime:
+    path: src/game/create-game.mjs
+    responsibility: Coordinate input, movement, combat and generator outputs.
+  renderer:
+    path: src/render/create-renderer.mjs
+    responsibility: Render product state on a browser canvas.
+acceptance:
+  command: npm run verify
+  invariants:
+    - No agent runtime, genetic memory or development instructions live here.
+    - Same arena seed yields the same walls and spawn pads.
+    - Generated tanks have a unique id and a known archetype.
+reading_order:
+  - README.md
+  - project.yaml
+  - test/generators.test.mjs
+  - src/generators/create-arena.mjs

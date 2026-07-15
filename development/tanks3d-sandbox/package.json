@@ -1,0 +1,14 @@
+{
+    "name": "@ai-live/tanks3d-development-sandbox",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "validate": "npm --prefix ../../sandbox/genetic-module exec -- tsx ../../sandbox/genetic-module/tools/project-session-cli.ts sandbox.json validate",
+        "setup": "npm --prefix ../../sandbox/genetic-module exec -- tsx ../../sandbox/genetic-module/tools/project-session-cli.ts sandbox.json setup",
+        "status": "npm --prefix ../../sandbox/genetic-module exec -- tsx ../../sandbox/genetic-module/tools/project-session-cli.ts sandbox.json status",
+        "scan": "npm --prefix ../../sandbox/genetic-module exec -- tsx ../../sandbox/genetic-module/tools/project-session-cli.ts sandbox.json scan",
+        "resolve": "npm --prefix ../../sandbox/genetic-module exec -- tsx ../../sandbox/genetic-module/tools/project-session-cli.ts sandbox.json resolve",
+        "verify": "npm run validate"
+    }
+}
