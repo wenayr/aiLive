@@ -5,11 +5,12 @@ const mapPicker = document.querySelector('#map')
 const keys = new Set()
 const mapKey = new URLSearchParams(location.search).get('map') ?? 'crossroads'
 const manualMaps = {
-    crossroads: [[2, 2], [3, 2], [4, 2], [8, 2], [9, 2], [10, 2], [2, 5], [5, 5], [8, 5], [10, 5], [3, 8], [4, 8], [6, 8], [8, 8], [9, 8], [2, 10], [5, 10], [8, 10], [10, 10]],
-    ring: [[3, 3], [4, 3], [5, 3], [6, 3], [7, 3], [8, 3], [9, 3], [3, 4], [9, 4], [3, 5], [9, 5], [3, 6], [9, 6], [3, 7], [9, 7], [3, 8], [9, 8], [3, 9], [4, 9], [5, 9], [6, 9], [7, 9], [8, 9], [9, 9]],
-    islands: [[2, 2], [3, 2], [2, 3], [9, 2], [10, 2], [10, 3], [2, 9], [2, 10], [3, 10], [9, 9], [10, 9], [9, 10], [5, 5], [6, 5], [7, 5], [6, 6], [5, 7], [6, 7], [7, 7]],
+    crossroads: {palette: {background: '#0a1711', tileA: '#1a3b2a', tileB: '#1d4631', wall: '#406a4d', core: '#79e7ff'}, corePads: [[6, 2], [2, 6], [10, 6]], walls: [[2, 2], [3, 2], [4, 2], [8, 2], [9, 2], [10, 2], [2, 5], [5, 5], [8, 5], [10, 5], [3, 8], [4, 8], [6, 8], [8, 8], [9, 8], [2, 10], [5, 10], [8, 10], [10, 10]]},
+    ring: {palette: {background: '#1b1014', tileA: '#4a202a', tileB: '#5b2735', wall: '#944958', core: '#ffe28a'}, corePads: [[6, 2], [2, 6], [10, 6]], walls: [[3, 3], [4, 3], [5, 3], [6, 3], [7, 3], [8, 3], [9, 3], [3, 4], [9, 4], [3, 5], [9, 5], [3, 6], [9, 6], [3, 7], [9, 7], [3, 8], [9, 8], [3, 9], [4, 9], [5, 9], [6, 9], [7, 9], [8, 9], [9, 9]]},
+    islands: {palette: {background: '#0a1730', tileA: '#173a5e', tileB: '#1d4a73', wall: '#3e76a3', core: '#9df8e7'}, corePads: [[6, 3], [3, 6], [9, 6]], walls: [[2, 2], [3, 2], [2, 3], [9, 2], [10, 2], [10, 3], [2, 9], [2, 10], [3, 10], [9, 9], [10, 9], [9, 10], [5, 5], [6, 5], [7, 5], [6, 6], [5, 7], [6, 7], [7, 7]]},
 }
-const arena = {size: 13, key: manualMaps[mapKey] ? mapKey : 'crossroads', walls: manualMaps[mapKey] ?? manualMaps.crossroads}
+const selectedMap = manualMaps[mapKey] ?? manualMaps.crossroads
+const arena = {size: 13, key: manualMaps[mapKey] ? mapKey : 'crossroads', ...selectedMap}
 const player = tank('player', 6, 10, '#79e7a9', 1.1)
 const enemies = [
     tank('scout', 1, 1, '#ffba69', 1.5), tank('scout', 11, 1, '#ffba69', 1.5),
@@ -24,12 +25,17 @@ const manualReinforcementSquads = [
     [tank('ace', 1, 11, '#a993ff', 2), tank('ace', 11, 11, '#a993ff', 2), tank('brute', 6, 1, '#ef7373', .9)],
 ]
 const shells = []
+const cores = arena.corePads.map(function createCore(pad, index) { return {id: `core-${index + 1}`, x: pad[0] + .5, y: pad[1] + .5, collected: false} })
+const effects = []
 let lastTime = performance.now()
 let lastShotAt = 0
 let nextReinforcement = 0
 let aim = {x: 6, y: 0}
 let boostUntil = 0
-let boostReadyAt = 0
+let boostCharges = 0
+let boostHeld = false
+let score = 0
+let paused = false
 
 mapPicker.value = arena.key
 mapPicker.addEventListener('change', function changeMap() {
@@ -41,6 +47,8 @@ mapPicker.addEventListener('change', function changeMap() {
 window.addEventListener('keydown', function onKeyDown(event) {
     keys.add(event.key.toLowerCase())
     if (event.code == 'Space') event.preventDefault()
+    if (!event.repeat && event.key.toLowerCase() == 'p') paused = !paused
+    if (!event.repeat && event.key.toLowerCase() == 'r') location.reload()
 })
 window.addEventListener('keyup', function onKeyUp(event) { keys.delete(event.key.toLowerCase()) })
 canvas.addEventListener('pointermove', function aimTurret(event) {
@@ -57,13 +65,13 @@ function tank(kind, x, y, color, speed) {
         : kind == 'brute'
             ? {bodyLength: 38, bodyWidth: 26, trackWidth: 8, turretRadius: 12, barrelLength: 28, shellSpeed: 6}
             : {bodyLength: 32, bodyWidth: 20, trackWidth: 6, turretRadius: 9, barrelLength: 25, shellSpeed: 7}
-    return {kind, x, y, color, speed, heading: -Math.PI / 2, turret: -Math.PI / 2, hp: kind == 'brute' ? 3 : 1, alive: true, model}
+    return {kind, x, y, color, speed, bounty: kind == 'ace' ? 300 : kind == 'brute' ? 180 : 100, heading: -Math.PI / 2, turret: -Math.PI / 2, hp: kind == 'brute' ? 3 : 1, alive: true, model}
 }
 
 function frame(now) {
     const delta = Math.min((now - lastTime) / 1000, .04)
     lastTime = now
-    update(delta, now)
+    if (!paused) update(delta, now)
     draw()
     requestAnimationFrame(frame)
 }
@@ -75,10 +83,12 @@ function update(delta, now) {
     if (keys.has('e')) player.turret += delta * 3
     player.turret = Math.atan2(aim.y - player.y, aim.x - player.x)
     const direction = (keys.has('w') ? 1 : 0) - (keys.has('s') ? 1 : 0)
-    if (keys.has('shift') && now >= boostReadyAt) {
+    collectCores()
+    if (keys.has('shift') && !boostHeld && boostCharges > 0) {
+        boostCharges -= 1
         boostUntil = now + 620
-        boostReadyAt = now + 2400
     }
+    boostHeld = keys.has('shift')
     const boostActive = now < boostUntil
     const driveSpeed = boostActive ? 5.8 : 3.2
     moveTank(player, Math.cos(player.heading) * direction * delta * driveSpeed, Math.sin(player.heading) * direction * delta * driveSpeed)
@@ -101,18 +111,33 @@ function update(delta, now) {
         const victim = shell.owner == player ? enemies.find(function hit(enemy) { return enemy.alive && distance(shell, enemy) < .5 }) : player
         if (victim?.alive && shell.owner != victim && distance(shell, victim) < .5) {
             victim.hp -= 1
-            if (victim.hp < 1) victim.alive = false
+            if (victim.hp < 1) {
+                victim.alive = false
+                effects.push({x: victim.x, y: victim.y, life: .55, color: victim.color})
+                if (victim != player) score += victim.bounty
+            }
             shell.life = 0
         }
     }
     while (shells.length && shells[0].life <= 0) shells.shift()
+    effects.forEach(function fade(effect) { effect.life -= delta })
+    while (effects.length && effects[0].life <= 0) effects.shift()
     if (player.alive && !enemies.some(function alive(enemy) { return enemy.alive }) && nextReinforcement < manualReinforcementSquads.length) {
         enemies.push(...manualReinforcementSquads[nextReinforcement])
         nextReinforcement += 1
     }
     hud.textContent = player.alive
-        ? `Hull ${player.hp} · hostile tanks ${enemies.filter(function alive(enemy) { return enemy.alive }).length} · ${arena.key} · turbo ${boostActive ? 'ACTIVE' : now >= boostReadyAt ? 'READY' : 'cooling'} · manual squad ${nextReinforcement}/3`
+        ? `${paused ? 'PAUSED · ' : ''}score ${score} · hull ${player.hp} · hostile ${enemies.filter(function alive(enemy) { return enemy.alive }).length} · cores ${cores.filter(function taken(core) { return core.collected }).length}/3 · turbo ${boostCharges}${boostActive ? ' ACTIVE' : ''} · ${arena.key} · wave ${nextReinforcement + 1}/4`
         : 'Your tank was destroyed. Reload the page to restart.'
+}
+
+function collectCores() {
+    cores.filter(function available(core) { return !core.collected }).forEach(function collect(core) {
+        if (distance(player, core) < .65) {
+            core.collected = true
+            boostCharges += 1
+        }
+    })
 }
 
 function moveTank(subject, dx, dy) {
@@ -131,12 +156,17 @@ function shoot(owner) {
 
 function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height)
-    context.fillStyle = '#0a1711'
+    context.fillStyle = arena.palette.background
     context.fillRect(0, 0, canvas.width, canvas.height)
     for (let y = 0; y < arena.size; y += 1) for (let x = 0; x < arena.size; x += 1) drawTile(x, y)
-    arena.walls.forEach(function wall(item) { drawBlock(item[0], item[1], '#406a4d') })
+    arena.walls.forEach(function wall(item) { drawBlock(item[0], item[1], arena.palette.wall) })
+    cores.filter(function available(core) { return !core.collected }).forEach(drawCore)
     shells.forEach(function shell(item) { drawOrb(item.x, item.y) })
-    ;[...enemies, player].filter(function alive(item) { return item.alive }).sort(function depth(a, b) { return a.x + a.y - b.x - b.y }).forEach(drawTank)
+    effects.forEach(drawEffect)
+    const subjects = [...enemies, player]
+        .filter(function alive(item) { return item.alive })
+        .sort(function depth(a, b) { return a.x + a.y - b.x - b.y })
+    subjects.forEach(drawTank)
 }
 
 function project(x, y, z = 0) { return [480 + (x - y) * 30, 84 + (x + y) * 15 - z * 30] }
@@ -153,9 +183,11 @@ function diamond(x, y, z, color) {
     context.closePath()
     context.fill()
 }
-function drawTile(x, y) { diamond(x, y, 0, (x + y) % 2 ? '#1a3b2a' : '#1d4631') }
+function drawTile(x, y) { diamond(x, y, 0, (x + y) % 2 ? arena.palette.tileA : arena.palette.tileB) }
 function drawBlock(x, y, color) { diamond(x, y, .65, color); diamond(x, y, .02, '#274632') }
+function drawCore(core) { const [x, y] = project(core.x, core.y, .7); context.fillStyle = arena.palette.core; context.beginPath(); context.moveTo(x, y - 12); context.lineTo(x + 8, y); context.lineTo(x, y + 12); context.lineTo(x - 8, y); context.closePath(); context.fill() }
 function drawOrb(x, y) { const [sx, sy] = project(x, y, .45); context.fillStyle = '#fff0a2'; context.beginPath(); context.arc(sx, sy, 5, 0, Math.PI * 2); context.fill() }
+function drawEffect(effect) { const [x, y] = project(effect.x, effect.y, .6); context.fillStyle = effect.color; context.globalAlpha = Math.max(effect.life * 2, 0); context.beginPath(); context.arc(x, y, 22 * (1 - effect.life), 0, Math.PI * 2); context.fill(); context.globalAlpha = 1 }
 function drawTank(subject) {
     const {model} = subject
     const [x, y] = project(subject.x, subject.y, .15)
@@ -176,6 +208,11 @@ function drawTank(subject) {
     context.fillStyle = '#e8f7ed'; context.fillRect(-3, -model.barrelLength, 6, model.barrelLength)
     context.fillStyle = subject.color; context.beginPath(); context.arc(0, 0, model.turretRadius, 0, Math.PI * 2); context.fill()
     context.restore()
+    if (subject != player) {
+        context.fillStyle = '#f3f6ff'
+        context.font = '10px system-ui'
+        context.fillText(subject.kind, x - 12, y - 26)
+    }
 }
 function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y) }
 

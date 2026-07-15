@@ -7,3 +7,5 @@
 
 - [TANKS3D_COMPARISON.md](./TANKS3D_COMPARISON.md) — первый двухитерационный
   прогон simple browser-product против generator product target.
+- [TANKS3D_V10_COMMON_PASS.md](./TANKS3D_V10_COMMON_PASS.md) — один общий
+  abstract brief из десяти векторов, выполненный отдельно в обеих версиях.

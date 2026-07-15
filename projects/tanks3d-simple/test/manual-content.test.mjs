@@ -8,5 +8,8 @@ test('simple game deliberately keeps its initial content in one runtime file', a
     assert.match(source, /const arena/)
     assert.match(source, /const enemies/)
     assert.match(source, /manualReinforcementSquads/)
+    assert.match(source, /corePads/)
+    assert.match(source, /effects/)
+    assert.match(source, /score/)
     assert.match(source, /function drawTank/)
 })

@@ -21,13 +21,19 @@ const arenaProfiles = {
     },
 }
 
+const arenaPalettes = {
+    crossroads: {background: '#10102a', tileA: '#22214c', tileB: '#29275b', wall: '#59508b', core: '#8ff9ee'},
+    ring: {background: '#251016', tileA: '#53212f', tileB: '#672b3d', wall: '#a04c61', core: '#ffe68b'},
+    islands: {background: '#091a31', tileA: '#164466', tileB: '#1b527c', wall: '#3f7fa8', core: '#8ff9ee'},
+}
+
 export function createArena({seed, kind = 'crossroads', size = 13}) {
     const profile = arenaProfiles[kind]
     if (!profile) throw new Error(`Unknown arena kind: ${kind}`)
     const random = createSeededRandom(`${seed}:${kind}`)
     const spawnPads = [[1, 1], [size - 2, 1], [1, size - 2], [size - 2, size - 2], [Math.floor(size / 2), 1]]
     const corePads = createCorePads({kind, size})
-    return {seed, kind, size, walls: profile({size, random, corePads}), spawnPads, corePads}
+    return {seed, kind, size, palette: arenaPalettes[kind], walls: profile({size, random, corePads}), spawnPads, corePads}
 }
 
 export function listArenaKinds() {

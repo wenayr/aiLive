@@ -2,7 +2,7 @@ schema: product-sandbox/v1
 identity:
   id: tanks3d-sandbox
   title: Tanks 3D generator experiment
-  status: ITERATION_FOUR_RAW_COOL_REQUEST
+  status: ITERATION_FIVE_COMMON_V10_PASS
 objective: >-
   Build a playable browser game from ordinary product modules whose three real
   repeating resources are generated from compact source-of-truth inputs.
@@ -30,6 +30,7 @@ acceptance:
     - Generated tanks have a unique id and a known archetype.
     - Player aim is supplied in world coordinates and controls the barrel direction.
     - A selected map supplies safe core pads; collection converts one core into one turbo burst.
+    - A defeated hostile produces score and one visible combat effect.
 reading_order:
   - README.md
   - project.yaml

@@ -8,6 +8,7 @@ export function createGame({seed = 'violet-arena', mapKind = 'crossroads'} = {})
     let round = 1
     const enemies = createWave({round, spawnPads: arena.spawnPads})
     const shells = []
+    const effects = []
     const cores = arena.corePads.map(function createCore(pad, index) {
         return {id: `core-${index + 1}`, x: pad[0] + .5, y: pad[1] + .5, collected: false}
     })
@@ -15,6 +16,7 @@ export function createGame({seed = 'violet-arena', mapKind = 'crossroads'} = {})
     let boostCharges = 0
     let boostUntil = 0
     let boostHeld = false
+    let score = 0
 
     function update({delta, now, input}) {
         rotatePlayer(delta, input)
@@ -42,11 +44,17 @@ export function createGame({seed = 'violet-arena', mapKind = 'crossroads'} = {})
                 : player
             if (victim?.alive && shell.owner != victim && distance(shell, victim) < .5) {
                 victim.hp -= 1
-                if (victim.hp < 1) victim.alive = false
+                if (victim.hp < 1) {
+                    victim.alive = false
+                    effects.push({x: victim.x, y: victim.y, life: .55, color: victim.color})
+                    if (victim != player) score += victim.bounty
+                }
                 shell.life = 0
             }
         })
         while (shells.length && shells[0].life <= 0) shells.shift()
+        effects.forEach(function fade(effect) { effect.life -= delta })
+        while (effects.length && effects[0].life <= 0) effects.shift()
         if (player.alive && !enemies.some(alive)) startNextWave()
     }
 
@@ -102,10 +110,11 @@ export function createGame({seed = 'violet-arena', mapKind = 'crossroads'} = {})
 
     return {
         api: {
-            snapshot: function snapshot() { return {arena, player, enemies, shells, cores, boostUntil} },
+            snapshot: function snapshot() { return {arena, player, enemies, shells, effects, cores, boostUntil} },
             status: function status() {
                 return {
                     hp: player.hp,
+                    score,
                     enemies: enemies.filter(alive).length,
                     round,
                     mapKind: arena.kind,

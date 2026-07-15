@@ -13,3 +13,6 @@
 Открой `index.html` в браузере. Управление: `WASD`, мышь для башни, `Space`.
 Собирай map-derived energy cores и используй `Shift` для turbo burst. Карта
 выбирается в верхней панели.
+
+Однопроходный общий brief из десяти user-visible векторов лежит во внешней
+[`development-песочнице`](../../development/tanks3d-sandbox/BRIEF_V10.md).

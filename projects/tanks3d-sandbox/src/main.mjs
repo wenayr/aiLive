@@ -10,6 +10,7 @@ const controls = {w: 'forward', s: 'backward', a: 'left', d: 'right', q: 'turret
 const game = createGame({mapKind})
 const renderer = createRenderer({canvas})
 let previous = performance.now()
+let paused = false
 
 mapPicker.value = mapKind
 mapPicker.addEventListener('change', function changeMap() {
@@ -22,6 +23,8 @@ window.addEventListener('keydown', function keyDown(event) {
     const key = event.key.toLowerCase()
     if (controls[key]) input[controls[key]] = true
     if (event.code == 'Space') event.preventDefault()
+    if (!event.repeat && key == 'p') paused = !paused
+    if (!event.repeat && key == 'r') location.reload()
 })
 window.addEventListener('keyup', function keyUp(event) {
     const key = event.key.toLowerCase()
@@ -38,11 +41,11 @@ canvas.addEventListener('pointermove', function aimTurret(event) {
 function frame(now) {
     const delta = Math.min((now - previous) / 1000, .04)
     previous = now
-    game.runtime.update({delta, now, input})
+    if (!paused) game.runtime.update({delta, now, input})
     renderer.render(game.api.snapshot())
     const status = game.api.status()
     hud.textContent = status.playerAlive
-        ? `Hull ${status.hp} · hostile tanks ${status.enemies} · cores ${status.cores}/${status.coreTotal} · boost ${status.boostCharges} · ${status.mapKind} · round ${status.round}`
+        ? `${paused ? 'PAUSED · ' : ''}score ${status.score} · hull ${status.hp} · hostile ${status.enemies} · cores ${status.cores}/${status.coreTotal} · boost ${status.boostCharges} · ${status.mapKind} · wave ${status.round}`
         : 'Your tank was destroyed. Reload the page to restart.'
     requestAnimationFrame(frame)
 }

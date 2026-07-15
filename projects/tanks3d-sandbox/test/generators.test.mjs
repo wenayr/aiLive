@@ -18,12 +18,14 @@ test('arena generator exposes safe core pads as part of the selected map contrac
     assert.ok(arena.corePads.every(function clear(pad) {
         return !arena.walls.some(function sameWall(wall) { return wall[0] == pad[0] && wall[1] == pad[1] })
     }))
+    assert.notDeepEqual(createArena({seed: 'violet', kind: 'crossroads'}).palette, createArena({seed: 'violet', kind: 'ring'}).palette)
 })
 
 test('tank generator exposes only known archetypes with stable ids', () => {
     assert.deepEqual(listTankArchetypes(), ['player', 'scout', 'brute', 'artillery'])
     const scout = createTank({id: 'one', archetype: 'scout', x: 1, y: 2})
     assert.equal(scout.id, 'one')
+    assert.equal(scout.bounty, 100)
     assert.ok(scout.model.barrelLength < createTank({id: 'two', archetype: 'artillery', x: 1, y: 2}).model.barrelLength)
     assert.throws(function invalidArchetype() {
         createTank({id: 'two', archetype: 'unknown', x: 1, y: 2})
@@ -73,4 +75,18 @@ test('game collects an arena core and converts it into one released turbo burst'
     game.runtime.update({delta: 0, now: 200, input: {boost: true}})
     assert.equal(game.api.status().boostCharges, 0)
     assert.ok(game.api.snapshot().boostUntil > 200)
+})
+
+test('game turns a defeated enemy into score and a visible combat effect', () => {
+    const game = createGame()
+    const snapshot = game.api.snapshot()
+    const enemy = snapshot.enemies[0]
+    enemy.x = snapshot.player.x
+    enemy.y = snapshot.player.y - .35
+
+    game.runtime.update({delta: .05, now: 1000, input: {fire: true}})
+
+    assert.equal(enemy.alive, false)
+    assert.equal(game.api.status().score, enemy.bounty)
+    assert.equal(game.api.snapshot().effects.length, 1)
 })
