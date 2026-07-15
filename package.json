@@ -2,19 +2,20 @@
     "name": "ai-live",
     "version": "0.2.0",
     "private": true,
-    "description": "Host repository for the standalone genetic module sandbox",
+    "description": "Host repository for product sandboxes and their genetic development layer",
     "engines": {
         "node": ">=20"
     },
     "workspaces": [
-        "sandbox/genetic-module"
+        "sandbox/genetic-module",
+        "projects/tableer",
+        "development/tableer"
     ],
     "scripts": {
-        "setup": "npm --prefix sandbox/genetic-module run setup",
-        "status": "npm --prefix sandbox/genetic-module run status",
-        "scan": "npm --prefix sandbox/genetic-module run scan",
-        "resolve": "npm --prefix sandbox/genetic-module run resolve",
-        "check": "npm --prefix sandbox/genetic-module run check --",
-        "verify": "npm --prefix sandbox/genetic-module run verify"
+        "setup": "npm --prefix development/tableer run setup",
+        "status": "npm --prefix development/tableer run status",
+        "scan": "npm --prefix development/tableer run scan",
+        "resolve": "npm --prefix development/tableer run resolve",
+        "verify": "npm --prefix sandbox/genetic-module run verify && npm --prefix projects/tableer run verify && npm --prefix development/tableer run verify"
     }
 }

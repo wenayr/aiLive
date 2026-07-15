@@ -7,6 +7,10 @@ coverage/
 sandbox/genetic-module/project/
 sandbox/genetic-module/genetic/
 
+# Runtime state of a development sandbox belongs to the local agent session.
+development/*/memory/
+development/*/runs/
+
 # Historical runtime directories from the previous laboratory are not source.
 .laboratory/
 .candidates/

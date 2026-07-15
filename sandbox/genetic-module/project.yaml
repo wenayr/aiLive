@@ -1,12 +1,11 @@
 schema: responsible-genetic-sandbox/v1
 identity:
   id: genetic-module-sandbox
-  title: Responsible genetic module sandbox
-  status: WORKING_BASELINE
+  title: Genetic engine and mechanics probe
+  status: ENGINE_WITH_EXTERNAL_TARGET_SUPPORT
 objective: >-
-  Let a Codex agent change a small live project while a persistent genetic
-  module notices saved-file changes, requests one focused judgment, and carries
-  an approved instruction into the next related change.
+  Provide a small persistent genetic engine for an external product-development
+  sandbox, while retaining an owned-project mechanics probe for regression tests.
 entrypoints:
   operation: README.md
   complete_intent: DESIGN_INTENT.md
@@ -19,6 +18,7 @@ directories:
   tasks: tasks/
   live_project: project/
   live_genetic_state: genetic/
+  external_target_cli: tools/project-session-cli.ts
 commands:
   setup: npm run setup
   status: npm run status
@@ -38,6 +38,8 @@ invariants:
   - No Git commit or Git diff is required to detect a saved change.
   - No external model or simulated model is called by the sandbox.
   - A task milestone is selected explicitly and never inferred from batch count.
+  - Bound-project setup writes only local development memory and never copies,
+    deletes, or overwrites the external target.
 reading_order:
   - AGENTS.md
   - README.md

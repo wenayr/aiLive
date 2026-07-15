@@ -7,7 +7,10 @@
   эксперимент действительно нужен.
 - [GENETIC_MODULE.md](./GENETIC_MODULE.md) — что является генетическим модулем,
   какие данные он накапливает и как созревает.
-- [SANDBOX_CONTRACT.md](./SANDBOX_CONTRACT.md) — граница ответственной песочницы
-  и рабочий цикл Codex.
+- [PROJECT_AND_DEVELOPMENT_SANDBOXES.md](./PROJECT_AND_DEVELOPMENT_SANDBOXES.md)
+  — правильное разделение продуктового проекта, внешней development-песочницы
+  и genetic engine.
+- [SANDBOX_CONTRACT.md](./SANDBOX_CONTRACT.md) — контракт отдельного
+  механического probe внутри genetic engine; это не карта Tableer.
 - [evidence/GENETIC_BASELINE.md](./evidence/GENETIC_BASELINE.md) — что уже
   проверено, а что пока остаётся гипотезой.

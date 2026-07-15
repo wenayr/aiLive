@@ -1,0 +1,30 @@
+schema: product-sandbox/v1
+identity:
+  id: tableer
+  title: Tableer
+  status: STARTING_PLATFORM
+objective: >-
+  Build a small headless table workspace through ordinary product modules.
+  This directory contains product code only; it is observed from the external
+  development/tableer sandbox.
+modules:
+  table_resource:
+    path: src/table/create-table.mjs
+    responsibility: Own rows and their stable identifiers.
+  filtering:
+    path: src/filter/filter-rows.mjs
+    responsibility: Apply a case-insensitive text query to product rows.
+  product_facade:
+    path: src/facade/create-tableer.mjs
+    responsibility: Project table and filtering as one user-facing operation.
+acceptance:
+  command: npm run verify
+  invariants:
+    - No agent runtime, genetic memory, or development orchestration lives here.
+    - Rows are copied on input and output, so callers cannot mutate table state indirectly.
+    - Empty query returns all rows.
+reading_order:
+  - README.md
+  - project.yaml
+  - test/tableer.test.mjs
+  - src/table/create-table.mjs

@@ -38,6 +38,7 @@ type tSandboxResponse = {
 
 export function createSandboxSession(deps: {
     rootDirectory: string
+    mode?: 'owned-project' | 'bound-project'
     projectDirectory?: string
     geneticDirectory?: string
     templateDirectory?: string
@@ -46,10 +47,17 @@ export function createSandboxSession(deps: {
     createId?: () => string
 }) {
     const rootDirectory = resolve(deps.rootDirectory)
-    const projectDirectory = resolveWithin(rootDirectory, deps.projectDirectory ?? 'project')
+    const mode = deps.mode ?? 'owned-project'
+    const projectDirectory = mode == 'bound-project'
+        ? resolve(requireBoundProjectDirectory(deps.projectDirectory))
+        : resolveWithin(rootDirectory, deps.projectDirectory ?? 'project')
     const geneticDirectory = resolveWithin(rootDirectory, deps.geneticDirectory ?? 'genetic')
-    const templateDirectory = resolveWithin(rootDirectory, deps.templateDirectory ?? 'template/project')
-    requireDisjointDirectories([projectDirectory, geneticDirectory, templateDirectory])
+    const templateDirectory = mode == 'owned-project'
+        ? resolveWithin(rootDirectory, deps.templateDirectory ?? 'template/project')
+        : null
+    requireDisjointDirectories(templateDirectory
+        ? [projectDirectory, geneticDirectory, templateDirectory]
+        : [projectDirectory, geneticDirectory])
     const trackedPaths = normalizePaths(deps.trackedPaths)
     const now = deps.now ?? function currentTime() { return new Date().toISOString() }
     const createId = deps.createId ?? randomUUID
@@ -63,15 +71,21 @@ export function createSandboxSession(deps: {
     const lockPath = resolveWithin(geneticDirectory, '.lock')
 
     async function setup() {
-        if (await exists(projectDirectory) || await exists(geneticDirectory)) {
+        if (await exists(geneticDirectory)) {
+            throw new Error('Sandbox is already initialized; inspect existing development state instead of overwriting it')
+        }
+        if (mode == 'owned-project' && await exists(projectDirectory)) {
             throw new Error('Sandbox is already initialized; inspect project/ and genetic/ instead of overwriting them')
+        }
+        if (mode == 'bound-project' && !await exists(projectDirectory)) {
+            throw new Error(`Bound target project does not exist: ${projectDirectory}`)
         }
         let ownsSetup = false
         try {
             await mkdir(geneticDirectory, {recursive: false})
             ownsSetup = true
             return await withLock(async function initialize() {
-                await copyDirectory(templateDirectory, projectDirectory)
+                if (mode == 'owned-project') await copyDirectory(templateDirectory as string, projectDirectory)
                 await mkdir(contentDirectory, {recursive: true})
                 await mkdir(historyDirectory, {recursive: true})
                 const contexts = await sampleTrackedFiles()
@@ -86,7 +100,7 @@ export function createSandboxSession(deps: {
             })
         } catch (error) {
             if (ownsSetup) {
-                await rm(projectDirectory, {recursive: true, force: true})
+                if (mode == 'owned-project') await rm(projectDirectory, {recursive: true, force: true})
                 await rm(geneticDirectory, {recursive: true, force: true})
             }
             throw error
@@ -330,7 +344,7 @@ function toSnapshots(contexts: tFileContext[]): tGeneticFileSnapshot[] {
 
 function requirePresentBaseline(contexts: tFileContext[]) {
     const missing = contexts.filter(function missing(context) { return context.revision == null })
-    if (missing.length > 0) throw new Error(`Template is missing tracked paths: ${missing.map(file => file.path).join(', ')}`)
+    if (missing.length > 0) throw new Error(`Target project is missing tracked paths: ${missing.map(file => file.path).join(', ')}`)
 }
 
 function changesFor(action: tGeneticPendingAction): tGeneticFileChange[] {
@@ -589,6 +603,11 @@ function resolveWithin(root: string, path: string) {
     const local = relative(root, candidate)
     if (local == '' || local.startsWith('..') || isAbsolute(local)) throw new Error(`Path escapes sandbox boundary: ${path}`)
     return candidate
+}
+
+function requireBoundProjectDirectory(path: string | undefined) {
+    if (!path?.trim()) throw new Error('Bound-project mode needs projectDirectory')
+    return path
 }
 
 function revision(content: string) {

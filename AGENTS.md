@@ -2,16 +2,23 @@
 
 ## Граница проекта
 
-Этот репозиторий теперь является хостом одной самостоятельной песочницы:
-`sandbox/genetic-module/`. При работе с ней сначала прочитай её `AGENTS.md`.
-Внутренний каталог не должен импортировать код из родителя.
+В репозитории три разных уровня, которые нельзя переворачивать:
+
+- `projects/tableer/` — обычный продуктовый проект с классическими модулями;
+- `development/tableer/` — внешняя песочница агента и его локальной памяти;
+- `sandbox/genetic-module/` — переиспользуемый genetic engine и его отдельный
+  механический probe.
+
+При работе с Tableer сначала читай `development/tableer/AGENTS.md`, затем
+`projects/tableer/project.yaml`. Агент и память не живут внутри Tableer.
 
 ## Что является источником истины
 
 1. `project.yaml`.
-2. `doc/FOUNDATION.md`, `doc/GENETIC_MODULE.md` и `doc/SANDBOX_CONTRACT.md`.
-3. `sandbox/genetic-module/project.yaml` и локальные tests.
-4. Живые `project/` и `genetic/` — только для текущего эксперимента.
+2. `doc/FOUNDATION.md`, `doc/GENETIC_MODULE.md` и
+   `doc/PROJECT_AND_DEVELOPMENT_SANDBOXES.md`.
+3. Релевантный `project.yaml`, `sandbox.json`, contracts и локальные tests.
+4. Локальная `memory/` — только для текущей development-сессии.
 
 Генетический модуль — это код маршрутизации и обработки зрелости. Его память —
 отдельные данные состояния, наблюдений, инструкций, истории и метрик. Не называй
@@ -23,9 +30,8 @@
 - Используй `==`/`!=`, одинарные кавычки, четыре пробела и отсутствие `;`.
 - Не добавляй API моделей, provider adapter, fixture model, сеть, публикацию,
   установку пакетов во время рабочего цикла или произвольный terminal facade.
-- `project/` — рабочий код агента. `genetic/` — состояние и отчёт модуля.
-- Не редактируй `genetic/state.json`, `pending.json`, `history/` или `trace.ndjson`
-  вручную. Агент заполняет только `genetic/response.json` по шаблону pending action.
+- Не редактируй `memory/state.json`, `pending.json`, `history/` или `trace.ndjson`
+  вручную. Агент заполняет только `memory/response.json` по шаблону pending action.
 - Это архитектурная песочница для разработки, а не граница OS-безопасности.
 
 ## Проверка

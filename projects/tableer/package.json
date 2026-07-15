@@ -1,0 +1,11 @@
+{
+    "name": "@ai-live/tableer",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "description": "A small real product sandbox for a headless table workspace",
+    "scripts": {
+        "test": "node --test test/*.test.mjs",
+        "verify": "npm run test"
+    }
+}

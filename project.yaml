@@ -1,30 +1,35 @@
-schema: responsible-sandbox-host/v1
+schema: product-development-host/v1
 identity:
   id: ai-live
-  title: AI Live genetic sandbox host
-  status: WORKING_BASELINE
+  title: AI Live product and development sandbox host
+  status: TABLEER_STARTING_PLATFORM
 objective: >-
-  Keep one standalone genetic-module sandbox that a Codex agent can open as its
-  complete working project and use before a Git commit exists.
+  Develop ordinary product projects through explicit external development
+  sandboxes. Start with Tableer while retaining the genetic engine as a small,
+  reusable observer of saved product changes before a Git commit exists.
 entrypoints:
   overview: README.md
   foundation: doc/FOUNDATION.md
   genetic_module: doc/GENETIC_MODULE.md
-  sandbox_contract: doc/SANDBOX_CONTRACT.md
-  standalone_project: sandbox/genetic-module/
+  architecture: doc/PROJECT_AND_DEVELOPMENT_SANDBOXES.md
+  product_project: projects/tableer/
+  development_sandbox: development/tableer/
+  genetic_engine: sandbox/genetic-module/
 acceptance:
   command: npm run verify
   invariants:
-    - The standalone project imports nothing from the host repository.
-    - Saved project files can trigger a scan without a Git commit.
+    - Tableer contains product modules and no agent runtime or genetic memory.
+    - The external development sandbox can scan saved Tableer files without a Git commit.
+    - Setup of the external sandbox does not copy, delete, or overwrite Tableer.
     - At most one genetic action is pending.
     - State survives a new CLI process.
     - No provider, model API, fixture model, browser, or shell controller is built in.
-    - Live project and genetic state are ignored by Git.
+    - Live development memory is ignored by Git.
 reading_order:
   - README.md
   - project.yaml
   - doc/FOUNDATION.md
   - doc/GENETIC_MODULE.md
-  - doc/SANDBOX_CONTRACT.md
-  - sandbox/genetic-module/AGENTS.md
+  - doc/PROJECT_AND_DEVELOPMENT_SANDBOXES.md
+  - development/tableer/AGENTS.md
+  - projects/tableer/project.yaml

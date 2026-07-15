@@ -1,23 +1,14 @@
-# AI Live — ответственная песочница генетического модуля
+# AI Live — продуктовая площадка и внешний genetic development layer
 
-Репозиторий очищен до одного рабочего направления: самостоятельного проекта
-[`sandbox/genetic-module/`](./sandbox/genetic-module/). Родитель хранит его как
-обычный каталог, а Codex можно открыть прямо в этом каталоге как в отдельной
-рабочей области.
+Первая реальная площадка — [`projects/tableer/`](./projects/tableer/): небольшой
+обычный продукт с классическими модулями. Агент и genetic module находятся не
+в нём, а во внешней [`development/tableer/`](./development/tableer/) песочнице.
+Она явно привязана к одному продукту, хранит свою локальную память и наблюдает
+сохранённые изменения до Git commit.
 
-Внутри агент видит:
-
-- `project/` — маленький изменяемый проект;
-- `genetic/` — живое состояние генетического модуля;
-- `src/` — проверяемое ядро и файловую сессию;
-- `tasks/` и `template/` — воспроизводимый эксперимент;
-- `DESIGN_INTENT.md` — полный замысел, включая дальний динамический проект и
-  открытый вопрос о будущем дирижёре.
-
-Встроенного вызова модели нет: Codex уже является исполнителем внутри этой
-рабочей области. После законченной правки он запускает scan, отвечает на одно
-pending action и продолжает обычную разработку. Git commit для события не
-нужен.
+[`sandbox/genetic-module/`](./sandbox/genetic-module/) остаётся
+переиспользуемым engine и механическим probe. Его старые локальные `project/`
+и `genetic/` не являются Tableer и не определяют устройство новой площадки.
 
 ## Быстрая проверка
 
@@ -29,10 +20,11 @@ npm run verify
 npm run status
 ```
 
-Живая локальная сессия уже создаётся командой `npm run setup`, которая никогда
-не перезаписывает существующие `project/` и `genetic/`. Полный рабочий протокол
-описан в [README песочницы](./sandbox/genetic-module/README.md) и
-[RUNBOOK](./sandbox/genetic-module/RUNBOOK.md).
+Живая локальная сессия Tableer создаётся `npm run setup`. Она создаёт только
+`development/tableer/memory/`, фиксируя baseline существующего Tableer; целевой
+проект не копируется, не удаляется и не переписывается.
 
-Нормативная выжимка дискуссии находится в [doc/](./doc/README.md), фактический
-baseline — в [GENETIC_BASELINE.md](./doc/evidence/GENETIC_BASELINE.md).
+Карта уровней — в
+[PROJECT_AND_DEVELOPMENT_SANDBOXES.md](./doc/PROJECT_AND_DEVELOPMENT_SANDBOXES.md).
+Полный замысел genetic engine сохранён в
+[DESIGN_INTENT.md](./sandbox/genetic-module/DESIGN_INTENT.md).

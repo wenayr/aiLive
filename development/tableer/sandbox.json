@@ -1,0 +1,10 @@
+{
+    "schema": "project-development-sandbox/v1",
+    "targetDirectory": "../../projects/tableer",
+    "memoryDirectory": "memory",
+    "trackedPaths": [
+        "src/table/create-table.mjs",
+        "src/filter/filter-rows.mjs",
+        "src/facade/create-tableer.mjs"
+    ]
+}

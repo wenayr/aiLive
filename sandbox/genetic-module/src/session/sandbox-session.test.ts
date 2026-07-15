@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { access, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import type { tGeneticModuleSnapshot } from '../genetic/contracts/genetic-module-contracts'
 import { createSandboxSession } from './sandbox-session'
 
@@ -109,6 +109,39 @@ test('failed setup removes only the partial directories created by that attempt'
         await assert.rejects(access(join(rootDirectory, 'genetic')))
     } finally {
         await rm(rootDirectory, {recursive: true, force: true})
+    }
+})
+
+test('bound-project mode records state beside the agent without copying or deleting the target', async () => {
+    const parentDirectory = await mkdtemp(join(tmpdir(), 'genetic-bound-session-'))
+    const developmentDirectory = join(parentDirectory, 'development', 'tableer')
+    const targetPath = join(parentDirectory, 'projects', 'tableer', 'src', 'table.mjs')
+    const memoryDirectory = join(developmentDirectory, 'memory')
+    try {
+        await mkdir(developmentDirectory, {recursive: true})
+        await mkdir(dirname(targetPath), {recursive: true})
+        await writeFile(targetPath, 'export const table = []\n', 'utf8')
+        const session = createSandboxSession({
+            rootDirectory: developmentDirectory,
+            mode: 'bound-project',
+            projectDirectory: join(parentDirectory, 'projects', 'tableer'),
+            geneticDirectory: 'memory',
+            trackedPaths: ['src/table.mjs'],
+        })
+
+        const initialized = await session.control.setup()
+
+        assert.equal(initialized.status, 'ready')
+        assert.equal(await readFile(targetPath, 'utf8'), 'export const table = []\n')
+        assert.ok(await readFile(join(memoryDirectory, 'state.json'), 'utf8'))
+        await assert.rejects(access(join(parentDirectory, 'projects', 'tableer', 'template')))
+
+        await writeFile(targetPath, 'export const table = [1]\n', 'utf8')
+        const scanned = await session.control.scan()
+        assert.equal(scanned.pendingAction?.kind, 'discover')
+        assert.equal(await readFile(targetPath, 'utf8'), 'export const table = [1]\n')
+    } finally {
+        await rm(parentDirectory, {recursive: true, force: true})
     }
 })
 
