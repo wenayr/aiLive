@@ -1,5 +1,6 @@
 import { createFieldTest } from '../field-test/create-field-test.mjs'
 import { createPerspectiveRenderer } from './create-perspective-renderer.mjs'
+import { createTerrain } from '../generators/create-terrain.mjs'
 
 const canvas = document.querySelector('#game')
 const hud = document.querySelector('#hud')
@@ -9,6 +10,7 @@ const input = {forward: false, backward: false, left: false, right: false, fire:
 const controls = {w: 'forward', s: 'backward', a: 'left', d: 'right', ' ': 'fire'}
 const field = createFieldTest({mapKind})
 const renderer = createPerspectiveRenderer({canvas})
+const terrain = createTerrain({seed: 'perspective-landscape', kind: mapKind, size: 130})
 let previous = performance.now()
 let paused = false
 
@@ -39,9 +41,9 @@ function frame(now) {
     previous = now
     if (!paused) field.runtime.update({delta, now, input})
     const snapshot = field.api.snapshot()
-    renderer.render(snapshot)
+    renderer.render({...snapshot, terrain})
     const status = field.api.status()
-    hud.textContent = `${paused ? 'PAUSED · ' : ''}${status.mapKind} · perspective 3D · hull ${status.hp} · enemies ${status.enemies} · objects ${status.objects} · destroyed ${status.destroyed}`
+    hud.textContent = `${paused ? 'PAUSED · ' : ''}${status.mapKind} · landscape 3D · hull ${status.hp} · enemies ${status.enemies} · objects ${status.objects} · destroyed ${status.destroyed}`
     requestAnimationFrame(frame)
 }
 

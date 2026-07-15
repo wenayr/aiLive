@@ -10,6 +10,7 @@ const arena = {size: 130, key: maps[key] ? key : 'canyon', ...maps[key] ?? maps.
 const player = tank('player', 12, 12, '#8ff0c0', 4, 3.3, 8)
 const enemies = [tank('scout', 19, 12, '#ffcb7a', 1, 1.7, 7), tank('brute', 12, 20, '#f3788f', 3, .8, 6), tank('artillery', 21, 21, '#7fe5e1', 2, 1.1, 11)]
 const blocks = makeBlocks()
+const landmarks = makeLandmarks()
 const keys = new Set()
 const shells = []
 const effects = []
@@ -36,13 +37,22 @@ function makeBlocks() {
     }
     return blocks
 }
+function makeLandmarks() {
+    return [
+        {kind: 'arch', x: 17, y: 6, scale: 1.2, color: '#d89a5a'}, {kind: 'boulder', x: 9, y: 5, scale: .9, color: '#71a878'},
+        {kind: 'spire', x: 22, y: 11, scale: 1.1, color: '#6ea9b6'}, {kind: 'pond', x: 7, y: 17, scale: 1.1, color: '#55b9cf'},
+        {kind: 'arch', x: 28, y: 20, scale: 1.4, color: '#d89a5a'}, {kind: 'boulder', x: 18, y: 24, scale: 1.2, color: '#71a878'},
+        {kind: 'spire', x: 35, y: 15, scale: .8, color: '#6ea9b6'}, {kind: 'pond', x: 29, y: 29, scale: 1.3, color: '#55b9cf'},
+    ]
+}
+function heightAt(x, y) { return (Math.sin(x * .19 + 2) * .46 + Math.cos(y * .17 - 2) * .34 + Math.sin((x + y) * .11) * .2 + (arena.key == 'canyon' ? Math.sin(y * .12) * Math.exp(-Math.pow((x - 65) / 22, 2)) * .65 : 0)) * .62 }
 
 function frame(now) {
     const delta = Math.min((now - last) / 1000, .04)
     last = now
     if (!paused) update(delta, now)
     draw()
-    hud.textContent = `${paused ? 'PAUSED · ' : ''}${arena.key} · perspective 3D · hull ${player.hp} · enemies ${enemies.filter(alive).length} · objects ${blocks.filter(alive).length} · destroyed ${blocks.filter(dead).length}`
+    hud.textContent = `${paused ? 'PAUSED · ' : ''}${arena.key} · landscape 3D · hull ${player.hp} · enemies ${enemies.filter(alive).length} · objects ${blocks.filter(alive).length} · destroyed ${blocks.filter(dead).length}`
     requestAnimationFrame(frame)
 }
 function update(delta, now) {
@@ -69,8 +79,9 @@ function draw() {
     context.fillRect(0, 0, canvas.width, canvas.height)
     const camera = {x: player.x - Math.cos(player.heading) * 5.2, y: player.y - Math.sin(player.heading) * 5.2, z: 4.6, heading: player.heading, focal: 520, horizon: 235}
     const polygons = []
-    for (let y = Math.floor(camera.y) - 16; y <= Math.floor(camera.y) + 16; y += 1) for (let x = Math.floor(camera.x) - 16; x <= Math.floor(camera.x) + 16; x += 1) if (x >= 0 && y >= 0 && x < arena.size && y < arena.size) polygon(polygons, camera, [[x, y, 0], [x + 1, y, 0], [x + 1, y + 1, 0], [x, y + 1, 0]], (x + y) % 2 ? arena.tileA : arena.tileB)
-    blocks.filter(function near(block) { return block.alive && distance(block, player) < 22 }).forEach(function block(block) { box(polygons, camera, block.x, block.y, .8, .9, .9, block.hp > 1 ? 1.6 : 1.05, 0, block.hp > 1 ? '#f5c978' : arena.wall) })
+    for (let y = Math.floor(camera.y) - 16; y <= Math.floor(camera.y) + 16; y += 1) for (let x = Math.floor(camera.x) - 16; x <= Math.floor(camera.x) + 16; x += 1) if (x >= 0 && y >= 0 && x < arena.size && y < arena.size) polygon(polygons, camera, [[x, y, heightAt(x, y)], [x + 1, y, heightAt(x + 1, y)], [x + 1, y + 1, heightAt(x + 1, y + 1)], [x, y + 1, heightAt(x, y + 1)]], (x + y) % 2 ? arena.tileA : arena.tileB)
+    blocks.filter(function near(block) { return block.alive && distance(block, player) < 22 }).forEach(function block(block) { box(polygons, camera, block.x, block.y, heightAt(block.x, block.y) + .8, .9, .9, block.hp > 1 ? 1.6 : 1.05, 0, block.hp > 1 ? '#f5c978' : arena.wall) })
+    landmarks.filter(function near(item) { return distance(item, player) < 26 }).forEach(function landmark(item) { landscape(polygons, camera, item) })
     enemies.filter(function near(enemy) { return enemy.alive && distance(enemy, player) < 26 }).forEach(function enemy(enemy) { model(polygons, camera, enemy) })
     model(polygons, camera, player)
     shells.forEach(function shell(shell) { const point = project(shell.x, shell.y, .7, camera); if (point) polygons.push({depth: point.depth, color: '#fff1a3', points: [[point.x - 4, point.y], [point.x, point.y - 4], [point.x + 4, point.y], [point.x, point.y + 4]]}) })
@@ -78,7 +89,10 @@ function draw() {
     polygons.sort(function depth(a, b) { return b.depth - a.depth }).forEach(paint)
     context.strokeStyle = '#ffffffaa'; context.beginPath(); context.arc(480, 320, 8, 0, Math.PI * 2); context.moveTo(466, 320); context.lineTo(494, 320); context.stroke()
 }
-function model(polygons, camera, subject) { const scale = subject.kind == 'brute' ? 1.22 : subject.kind == 'scout' ? .82 : 1; box(polygons, camera, subject.x, subject.y, .36, .82 * scale, 1.22 * scale, .48 * scale, subject.heading, subject.color); box(polygons, camera, subject.x, subject.y, .82 * scale, .55 * scale, .55 * scale, .35 * scale, subject.turret, shade(subject.color, 18)); const nose = ahead(subject, .56 * scale); box(polygons, camera, nose.x, nose.y, scale, .14 * scale, subject.kind == 'artillery' ? 1.15 : .82, .14 * scale, subject.turret, '#eef8ff') }
+function model(polygons, camera, subject) { const scale = subject.kind == 'brute' ? 1.22 : subject.kind == 'scout' ? .82 : 1; const elevation = heightAt(subject.x, subject.y); box(polygons, camera, subject.x, subject.y, elevation + .36, .82 * scale, 1.22 * scale, .48 * scale, subject.heading, subject.color); cylinder(polygons, camera, subject.x, subject.y, elevation + .82 * scale, .35 * scale, .35 * scale, shade(subject.color, 18)); const nose = ahead(subject, .56 * scale); box(polygons, camera, nose.x, nose.y, elevation + scale, .14 * scale, subject.kind == 'artillery' ? 1.15 : .82, .14 * scale, subject.turret, '#eef8ff') }
+function landscape(polygons, camera, item) { const z = heightAt(item.x, item.y); if (item.kind == 'pond') { cylinder(polygons, camera, item.x, item.y, z, item.scale * 1.1, .08, item.color); return }; if (item.kind == 'arch') { cylinder(polygons, camera, item.x - item.scale * .55, item.y, z + item.scale * .45, item.scale * .26, item.scale * .9, item.color); cylinder(polygons, camera, item.x + item.scale * .55, item.y, z + item.scale * .45, item.scale * .26, item.scale * .9, item.color); arc(polygons, camera, item.x, item.y, z + item.scale * .85, item.scale * .55, item.scale * .25, item.color); return }; cylinder(polygons, camera, item.x, item.y, z + item.scale * (item.kind == 'spire' ? .9 : .42), item.scale * (item.kind == 'spire' ? .32 : .62), item.scale * (item.kind == 'spire' ? 1.8 : .84), item.color) }
+function cylinder(polygons, camera, x, y, z, radius, height, color) { const bottom = []; const top = []; for (let index = 0; index < 8; index += 1) { const angle = index / 8 * Math.PI * 2; bottom.push([x + Math.cos(angle) * radius, y + Math.sin(angle) * radius, z - height / 2]); top.push([x + Math.cos(angle) * radius, y + Math.sin(angle) * radius, z + height / 2]) }; polygon(polygons, camera, top, shade(color, 18)); for (let index = 0; index < 8; index += 1) polygon(polygons, camera, [bottom[index], bottom[(index + 1) % 8], top[(index + 1) % 8], top[index]], index % 2 ? color : shade(color, -15)) }
+function arc(polygons, camera, x, y, z, radius, thickness, color) { const points = []; for (let index = 0; index <= 8; index += 1) { const angle = Math.PI - index / 8 * Math.PI; points.push([x + Math.cos(angle) * radius, z + Math.sin(angle) * radius]) }; for (let index = 0; index < 8; index += 1) box(polygons, camera, (points[index][0] + points[index + 1][0]) / 2, y, (points[index][1] + points[index + 1][1]) / 2, thickness, Math.hypot(points[index + 1][0] - points[index][0], points[index + 1][1] - points[index][1]) + thickness, thickness, Math.PI / 2, color) }
 function box(polygons, camera, x, y, z, width, length, height, heading, color) { const corners = cornersFor(x, y, width, length, heading); const bottom = corners.map(function point(point) { return [...point, z - height / 2] }); const top = corners.map(function point(point) { return [...point, z + height / 2] }); polygon(polygons, camera, top, shade(color, 20)); polygon(polygons, camera, [bottom[0], bottom[1], top[1], top[0]], shade(color, -18)); polygon(polygons, camera, [bottom[1], bottom[2], top[2], top[1]], color); polygon(polygons, camera, [bottom[2], bottom[3], top[3], top[2]], shade(color, -8)); polygon(polygons, camera, [bottom[3], bottom[0], top[0], top[3]], color) }
 function polygon(polygons, camera, points, color) { const projected = points.map(function point(point) { return project(point[0], point[1], point[2], camera) }); if (projected.some(function hidden(point) { return !point })) return; polygons.push({depth: projected.reduce(function sum(total, point) { return total + point.depth }, 0) / projected.length, color, points: projected}) }
 function project(x, y, z, camera) { const dx = x - camera.x; const dy = y - camera.y; const forward = dx * Math.cos(camera.heading) + dy * Math.sin(camera.heading); if (forward < .25) return null; const right = -dx * Math.sin(camera.heading) + dy * Math.cos(camera.heading); return {x: 480 + right * camera.focal / forward, y: camera.horizon + (camera.z - z) * camera.focal / forward, depth: forward} }

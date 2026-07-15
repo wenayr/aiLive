@@ -4,6 +4,7 @@ import { createArena } from '../src/generators/create-arena.mjs'
 import { createTank } from '../src/generators/create-tank.mjs'
 import { createRenderer } from '../src/render/create-renderer.mjs'
 import { createPerspectiveRenderer } from '../src/perspective-test/create-perspective-renderer.mjs'
+import { createTerrain } from '../src/generators/create-terrain.mjs'
 
 test('renderer consumes the selected arena palette without an implicit global arena', () => {
     const context = createContext()
@@ -45,7 +46,7 @@ test('perspective renderer draws native 3D tank models and a chase camera withou
     const player = createTank({id: 'player', archetype: 'player', x: 12, y: 12})
     const enemy = createTank({id: 'scout', archetype: 'scout', x: 12, y: 6})
 
-    renderer.render({arena, player, enemies: [enemy], shells: [], effects: [], blocks: [{x: 12, y: 8, hp: 2, alive: true}]})
+    renderer.render({arena, player, enemies: [enemy], shells: [], effects: [], blocks: [{x: 12, y: 8, hp: 2, alive: true}], terrain: createTerrain({seed: 'violet', kind: 'canyon', size: 130})})
 
     assert.ok(context.calls > 0)
 })
