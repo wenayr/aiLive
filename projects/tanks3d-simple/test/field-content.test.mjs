@@ -17,15 +17,18 @@ test('simple field test keeps ten manual maps, one tank controls and destructibl
     assert.match(source, /function screenAngle/)
 })
 
-test('simple perspective test keeps an independent 3D camera, models and destructible combat', async () => {
+test('simple perspective test builds a separate tidal landscape, tank silhouette and destructible combat', async () => {
     const source = await readFile(new URL('../perspective-test.js', import.meta.url), 'utf8')
 
-    assert.match(source, /night outpost 3D/)
-    assert.match(source, /function project\(x, y, z, camera\)/)
-    assert.match(source, /function model\(polygons, camera, subject\)/)
-    assert.match(source, /function box\(polygons, camera/)
-    assert.match(source, /function damage\(target\)/)
-    assert.match(source, /const enemies = \[tank\('scout'/)
-    assert.match(source, /const outpost = \[/)
-    assert.match(source, /function drawBuilding\(polygons, camera, building\)/)
+    assert.match(source, /TIDAL VALE/)
+    assert.match(source, /function seedNature/)
+    assert.match(source, /function heightAt/)
+    assert.match(source, /function underwater/)
+    assert.match(source, /function project\(x, y, z, eye\)/)
+    assert.match(source, /function drawTank\(facets, eye, unit\)/)
+    assert.match(source, /function prism\(facets, eye/)
+    assert.match(source, /function hurt\(target\)/)
+    assert.match(source, /const hostiles = \[/)
+    assert.match(source, /function drawFeatureModel/)
+    assert.match(source, /const side =/)
 })

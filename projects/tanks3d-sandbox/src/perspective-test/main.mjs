@@ -1,25 +1,15 @@
-import { createFieldTest } from '../field-test/create-field-test.mjs'
+import { createCoastalScenario } from './create-coastal-scenario.mjs'
 import { createPerspectiveRenderer } from './create-perspective-renderer.mjs'
-import { createScenery } from '../generators/create-scenery.mjs'
 
 const canvas = document.querySelector('#game')
 const hud = document.querySelector('#hud')
-const mapPicker = document.querySelector('#map')
-const mapKind = new URLSearchParams(location.search).get('map') ?? 'canyon'
+const scenario = createCoastalScenario()
+const renderer = createPerspectiveRenderer({canvas})
 const input = {forward: false, backward: false, left: false, right: false, fire: false, aim: null}
 const controls = {w: 'forward', s: 'backward', a: 'left', d: 'right', ' ': 'fire'}
-const field = createFieldTest({mapKind})
-const renderer = createPerspectiveRenderer({canvas})
-const scenery = createScenery({seed: 'open-art-direction', kind: mapKind, size: 130})
 let previous = performance.now()
 let paused = false
 
-mapPicker.value = mapKind
-mapPicker.addEventListener('change', function changeMap() {
-    const url = new URL(location.href)
-    url.searchParams.set('map', mapPicker.value)
-    location.assign(url)
-})
 window.addEventListener('keydown', function keyDown(event) {
     const key = event.key.toLowerCase()
     if (controls[key]) input[controls[key]] = true
@@ -28,23 +18,19 @@ window.addEventListener('keydown', function keyDown(event) {
     if (!event.repeat && key == 'r') location.reload()
 })
 window.addEventListener('keyup', function keyUp(event) { const key = event.key.toLowerCase(); if (controls[key]) input[controls[key]] = false })
-canvas.addEventListener('pointermove', function aimTurret(event) {
+canvas.addEventListener('pointermove', function aim(event) {
     const bounds = canvas.getBoundingClientRect()
-    const ratio = (event.clientX - bounds.left) / bounds.width - .5
-    const player = field.api.snapshot().player
-    const angle = player.heading + ratio * 1.8
-    input.aim = {x: player.x + Math.cos(angle) * 10, y: player.y + Math.sin(angle) * 10}
+    const player = scenario.api.snapshot().player
+    const angle = player.heading + ((event.clientX - bounds.left) / bounds.width - .5) * 1.8
+    input.aim = {x: player.x + Math.cos(angle) * 12, y: player.y + Math.sin(angle) * 12}
 })
-
 function frame(now) {
     const delta = Math.min((now - previous) / 1000, .04)
     previous = now
-    if (!paused) field.runtime.update({delta, now, input})
-    const snapshot = field.api.snapshot()
-    renderer.render({...snapshot, scenery})
-    const status = field.api.status()
-    hud.textContent = `${paused ? 'PAUSED · ' : ''}${status.mapKind} · wildland 3D · hull ${status.hp} · enemies ${status.enemies} · objects ${status.objects} · destroyed ${status.destroyed}`
+    if (!paused) scenario.runtime.update({delta, now, input})
+    renderer.render(scenario.api.snapshot())
+    const status = scenario.api.status()
+    hud.textContent = `${paused ? 'PAUSED · ' : ''}coastal world · hull ${status.hp} · enemies ${status.enemies} · living cover ${status.cover}`
     requestAnimationFrame(frame)
 }
-
 requestAnimationFrame(frame)

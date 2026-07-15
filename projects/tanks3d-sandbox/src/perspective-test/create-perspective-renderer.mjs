@@ -1,149 +1,77 @@
 export function createPerspectiveRenderer({canvas}) {
     const context = canvas.getContext('2d')
-
-    function render({arena, player, enemies, shells, effects, blocks, scenery = plainScenery}) {
-        const camera = createCamera(player)
+    function render({world, player, enemies, shells, effects}) {
+        const camera = makeCamera(player)
         const polygons = []
+        paintSky()
+        addTerrain({world, player, camera, polygons})
+        world.flora.filter(function near(item) { return item.alive && distance(item, player) < 33 }).forEach(function item(item) { addFlora({item, world, camera, polygons}) })
+        world.cover.filter(function near(item) { return item.alive && distance(item, player) < 30 }).forEach(function item(item) { addRock({item, world, camera, polygons}) })
+        enemies.filter(function alive(item) { return item.alive && distance(item, player) < 30 }).forEach(function tank(tank) { addTank({tank, world, camera, polygons}) })
+        addTank({tank: player, world, camera, polygons})
+        shells.forEach(function shell(shell) { addDiamond({polygons, camera, x: shell.x, y: shell.y, z: world.heightAt(shell.x, shell.y) + .65, color: '#fff2ab', radius: 4}) })
+        effects.forEach(function effect(effect) { addDiamond({polygons, camera, x: effect.x, y: effect.y, z: world.heightAt(effect.x, effect.y) + .8, color: effect.color, radius: 20 * (1 - effect.life), alpha: effect.life * 2}) })
+        polygons.sort(function depth(a, b) { return b.depth - a.depth }).forEach(draw)
+        crosshair()
+    }
+    function paintSky() {
         const sky = context.createLinearGradient(0, 0, 0, canvas.height)
-        sky.addColorStop(0, '#0c1625')
-        sky.addColorStop(1, arena.palette.background)
-        context.fillStyle = sky
-        context.fillRect(0, 0, canvas.width, canvas.height)
-        addGround({arena, camera, polygons, scenery})
-        blocks.filter(function nearby(block) { return block.alive && distance(block, player) < 22 }).forEach(function block(block) {
-            addBox({polygons, camera, x: block.x, y: block.y, z: scenery.heightAt(block.x, block.y) + .8, width: .9, length: .9, height: block.hp > 1 ? 1.6 : 1.05, heading: 0, color: block.hp > 1 ? '#f5c978' : arena.palette.wall})
-        })
-        scenery.features.filter(function nearby(feature) { return distance(feature, player) < 28 }).forEach(function feature(feature) { addScenery({polygons, camera, feature, scenery}) })
-        enemies.filter(function nearby(enemy) { return enemy.alive && distance(enemy, player) < 26 }).forEach(function enemy(enemy) { addTank({polygons, camera, subject: enemy, scenery}) })
-        addTank({polygons, camera, subject: player, scenery})
-        shells.forEach(function shell(shell) { addOrb({polygons, camera, shell}) })
-        effects.forEach(function effect(effect) { addEffect({polygons, camera, effect}) })
-        polygons.sort(function backToFront(a, b) { return b.depth - a.depth }).forEach(drawPolygon)
-        drawCrosshair()
+        sky.addColorStop(0, '#5e96bd'); sky.addColorStop(.6, '#cadfd5'); sky.addColorStop(1, '#d8d09c')
+        context.fillStyle = sky; context.fillRect(0, 0, canvas.width, canvas.height)
+        context.fillStyle = '#fff5cd'; context.beginPath(); context.arc(760, 110, 38, 0, Math.PI * 2); context.fill()
+        context.fillStyle = '#607989'; context.beginPath(); context.moveTo(0, 370)
+        for (let x = 0; x <= canvas.width; x += 64) context.lineTo(x, 338 + Math.sin(x * .018) * 20 + Math.cos(x * .052) * 15)
+        context.lineTo(canvas.width, 450); context.lineTo(0, 450); context.closePath(); context.fill()
     }
-
-    function createCamera(player) {
-        const forward = {x: Math.cos(player.heading), y: Math.sin(player.heading)}
-        return {x: player.x - forward.x * 5.2, y: player.y - forward.y * 5.2, z: 4.6, heading: player.heading, focal: 520, horizon: 235}
-    }
-
-    function addGround({arena, camera, polygons, scenery}) {
-        const centerX = Math.floor(camera.x)
-        const centerY = Math.floor(camera.y)
-        for (let y = centerY - 16; y <= centerY + 16; y += 1) for (let x = centerX - 16; x <= centerX + 16; x += 1) {
-            if (x < 0 || y < 0 || x >= arena.size || y >= arena.size) continue
-            addPolygon({polygons, camera, points: [[x, y, scenery.heightAt(x, y)], [x + 1, y, scenery.heightAt(x + 1, y)], [x + 1, y + 1, scenery.heightAt(x + 1, y + 1)], [x, y + 1, scenery.heightAt(x, y + 1)]], color: (x + y) % 2 ? arena.palette.tileA : arena.palette.tileB})
+    function addTerrain({world, player, camera, polygons}) {
+        const radius = 33
+        for (let y = Math.floor(player.y) - radius; y <= Math.floor(player.y) + radius; y += 2) for (let x = Math.floor(player.x) - radius; x <= Math.floor(player.x) + radius; x += 2) {
+            if (x < 0 || y < 0 || x >= world.size || y >= world.size) continue
+            const sea = world.isSea(x + 1, y + 1)
+            const heights = sea ? [0, 0, 0, 0] : [world.heightAt(x, y), world.heightAt(x + 2, y), world.heightAt(x + 2, y + 2), world.heightAt(x, y + 2)]
+            const color = sea ? ((x + y) % 4 ? '#3f849a' : '#61a2ad') : heights[0] > 2.6 ? '#7c8060' : heights[0] > 1.3 ? '#708a55' : '#7d9c61'
+            polygon({polygons, camera, points: [[x, y, heights[0]], [x + 2, y, heights[1]], [x + 2, y + 2, heights[2]], [x, y + 2, heights[3]]], color})
         }
     }
-
-    function addTank({polygons, camera, subject, scenery}) {
-        const scale = subject.archetype == 'brute' ? 1.22 : subject.archetype == 'scout' ? .82 : 1
-        const height = scenery.heightAt(subject.x, subject.y)
-        addBox({polygons, camera, x: subject.x, y: subject.y, z: height + .36, width: .82 * scale, length: 1.22 * scale, height: .48 * scale, heading: subject.heading, color: subject.color})
-        addBox({polygons, camera, x: subject.x, y: subject.y, z: height + .82 * scale, width: .55 * scale, length: .55 * scale, height: .35 * scale, heading: subject.turret, color: lighten(subject.color, 18)})
-        const barrel = pointAhead(subject.x, subject.y, subject.turret, .56 * scale)
-        addBox({polygons, camera, x: barrel.x, y: barrel.y, z: height + 1.0 * scale, width: .14 * scale, length: subject.archetype == 'artillery' ? 1.15 : .82, height: .14 * scale, heading: subject.turret, color: '#eef8ff'})
-    }
-
-    function addScenery({polygons, camera, feature, scenery}) {
-        const height = scenery.heightAt(feature.x, feature.y)
-        const colors = feature.tone == 'warm' ? ['#9e673d', '#d9a359'] : ['#2e746f', '#63aaa0']
-        if (feature.form == 'shrub') {
-            addPyramid({polygons, camera, x: feature.x, y: feature.y, z: height + feature.scale * .4, radius: feature.scale * .7, height: feature.scale * .8, color: colors[1]})
-            return
+    function addFlora({item, world, camera, polygons}) {
+        const ground = world.heightAt(item.x, item.y)
+        if (item.type == 'tree') {
+            box({polygons, camera, x: item.x, y: item.y, z: ground + item.scale * .35, width: .16 * item.scale, length: .16 * item.scale, height: .7 * item.scale, heading: 0, color: '#604835'})
+            pyramid({polygons, camera, x: item.x, y: item.y, z: ground + item.scale * 1.2, radius: item.scale * .72, height: item.scale * 1.7, color: item.tone == 'sunny' ? '#2d6e45' : '#20503a'})
+        } else {
+            pyramid({polygons, camera, x: item.x, y: item.y, z: ground + item.scale * .38, radius: item.scale * .8, height: item.scale * .76, color: item.tone == 'sunny' ? '#668746' : '#41633a'})
         }
-        if (feature.form == 'spire') {
-            addPyramid({polygons, camera, x: feature.x, y: feature.y, z: height + feature.scale, radius: feature.scale * .42, height: feature.scale * 2, color: colors[0]})
-            return
+    }
+    function addRock({item, world, camera, polygons}) {
+        const z = world.heightAt(item.x, item.y); const s = item.scale
+        const base = [[item.x - s, item.y - s, z], [item.x + s, item.y - s * .6, z], [item.x + s * .7, item.y + s, z], [item.x - s * .8, item.y + s * .65, z]]; const peak = [item.x + s * .1, item.y, z + s]
+        base.forEach(function point(point, index) { polygon({polygons, camera, points: [point, base[(index + 1) % 4], peak], color: index % 2 ? '#877c6b' : '#665f57'}) })
+    }
+    function addTank({tank, world, camera, polygons}) {
+        const scale = tank.archetype == 'brute' ? 1.2 : tank.archetype == 'scout' ? .8 : 1; const ground = world.heightAt(tank.x, tank.y)
+        box({polygons, camera, x: tank.x, y: tank.y, z: ground + .37 * scale, width: 1.08 * scale, length: 1.78 * scale, height: .54 * scale, heading: tank.heading, color: tank.color})
+        for (const side of [-1, 1]) {
+            const track = lateral(tank.x, tank.y, tank.heading, side * .64 * scale)
+            box({polygons, camera, x: track.x, y: track.y, z: ground + .22 * scale, width: .28 * scale, length: 1.85 * scale, height: .38 * scale, heading: tank.heading, color: '#29332e'})
+            for (const along of [-.55, 0, .55]) { const point = lateral(...Object.values(ahead(tank.x, tank.y, tank.heading, along * scale)), tank.heading, side * .8 * scale); addDiamond({polygons, camera, x: point.x, y: point.y, z: ground + .23 * scale, color: '#15201a', radius: 4 * scale}) }
         }
-        addBox({polygons, camera, x: feature.x, y: feature.y, z: height + feature.scale * .22, width: feature.scale * 1.4, length: feature.scale * .8, height: feature.scale * .45, heading: feature.scale, color: colors[0]})
+        box({polygons, camera, x: tank.x - Math.cos(tank.heading) * .12 * scale, y: tank.y - Math.sin(tank.heading) * .12 * scale, z: ground + .79 * scale, width: .86 * scale, length: .9 * scale, height: .4 * scale, heading: tank.turret, color: shift(tank.color, 20)})
+        const barrel = ahead(tank.x, tank.y, tank.turret, .88 * scale)
+        box({polygons, camera, x: barrel.x, y: barrel.y, z: ground + .95 * scale, width: .16 * scale, length: tank.archetype == 'artillery' ? 1.45 : 1.08, height: .15 * scale, heading: tank.turret, color: '#cbd6cd'})
+        box({polygons, camera, x: tank.x, y: tank.y, z: ground + 1.06 * scale, width: .3 * scale, length: .3 * scale, height: .1 * scale, heading: tank.turret, color: '#33483c'})
     }
-
-    function addPyramid({polygons, camera, x, y, z, radius, height, color}) {
-        const base = [[x - radius, y - radius, z - height / 2], [x + radius, y - radius, z - height / 2], [x + radius, y + radius, z - height / 2], [x - radius, y + radius, z - height / 2]]
-        const peak = [x, y, z + height / 2]
-        addPolygon({polygons, camera, points: [base[0], base[1], peak], color: darken(color, 18)})
-        addPolygon({polygons, camera, points: [base[1], base[2], peak], color})
-        addPolygon({polygons, camera, points: [base[2], base[3], peak], color: lighten(color, 12)})
-        addPolygon({polygons, camera, points: [base[3], base[0], peak], color: darken(color, 8)})
-    }
-
-    function addBox({polygons, camera, x, y, z, width, length, height, heading, color}) {
-        const corners = orientedCorners({x, y, width, length, heading})
-        const bottom = corners.map(function point(point) { return [...point, z - height / 2] })
-        const top = corners.map(function point(point) { return [...point, z + height / 2] })
-        addPolygon({polygons, camera, points: top, color: lighten(color, 20)})
-        addPolygon({polygons, camera, points: [bottom[0], bottom[1], top[1], top[0]], color: darken(color, 18)})
-        addPolygon({polygons, camera, points: [bottom[1], bottom[2], top[2], top[1]], color})
-        addPolygon({polygons, camera, points: [bottom[2], bottom[3], top[3], top[2]], color: darken(color, 8)})
-        addPolygon({polygons, camera, points: [bottom[3], bottom[0], top[0], top[3]], color})
-    }
-
-    function addOrb({polygons, camera, shell}) {
-        const projected = project(shell.x, shell.y, .7, camera)
-        if (!projected) return
-        polygons.push({depth: projected.depth, color: '#fff1a3', points: [[projected.x - 4, projected.y], [projected.x, projected.y - 4], [projected.x + 4, projected.y], [projected.x, projected.y + 4]]})
-    }
-
-    function addEffect({polygons, camera, effect}) {
-        const projected = project(effect.x, effect.y, .5, camera)
-        if (!projected) return
-        const radius = 18 * (1 - effect.life)
-        polygons.push({depth: projected.depth, color: effect.color, alpha: Math.max(effect.life * 2, 0), points: [[projected.x - radius, projected.y], [projected.x, projected.y - radius], [projected.x + radius, projected.y], [projected.x, projected.y + radius]]})
-    }
-
-    function addPolygon({polygons, camera, points, color}) {
-        const projected = points.map(function point(point) { return project(point[0], point[1], point[2], camera) })
-        if (projected.some(function hidden(point) { return !point })) return
-        polygons.push({depth: projected.reduce(function total(sum, point) { return sum + point.depth }, 0) / projected.length, color, points: projected})
-    }
-
-    function project(x, y, z, camera) {
-        const dx = x - camera.x
-        const dy = y - camera.y
-        const forward = dx * Math.cos(camera.heading) + dy * Math.sin(camera.heading)
-        if (forward < .25) return null
-        const right = -dx * Math.sin(camera.heading) + dy * Math.cos(camera.heading)
-        return {x: canvas.width / 2 + right * camera.focal / forward, y: camera.horizon + (camera.z - z) * camera.focal / forward, depth: forward}
-    }
-
-    function drawPolygon(polygon) {
-        context.globalAlpha = polygon.alpha ?? 1
-        context.fillStyle = polygon.color
-        context.beginPath()
-        polygon.points.forEach(function point(point, index) { index ? context.lineTo(point.x ?? point[0], point.y ?? point[1]) : context.moveTo(point.x ?? point[0], point.y ?? point[1]) })
-        context.closePath()
-        context.fill()
-        context.globalAlpha = 1
-    }
-
-    function drawCrosshair() {
-        context.strokeStyle = '#ffffffaa'
-        context.lineWidth = 1
-        context.beginPath()
-        context.arc(canvas.width / 2, canvas.height / 2, 8, 0, Math.PI * 2)
-        context.moveTo(canvas.width / 2 - 14, canvas.height / 2)
-        context.lineTo(canvas.width / 2 + 14, canvas.height / 2)
-        context.moveTo(canvas.width / 2, canvas.height / 2 - 14)
-        context.lineTo(canvas.width / 2, canvas.height / 2 + 14)
-        context.stroke()
-    }
-
+    function makeCamera(player) { const f = ahead(0, 0, player.heading, 1); return {x: player.x - f.x * 5.8, y: player.y - f.y * 5.8, z: 4.3, heading: player.heading, focal: 600, horizon: 255} }
+    function box({polygons, camera, x, y, z, width, length, height, heading, color}) { const c = corners(x, y, width, length, heading); const bottom = c.map(function point(point) { return [...point, z - height / 2] }); const top = c.map(function point(point) { return [...point, z + height / 2] }); polygon({polygons, camera, points: top, color: shift(color, 18)}); for (let index = 0; index < 4; index += 1) polygon({polygons, camera, points: [bottom[index], bottom[(index + 1) % 4], top[(index + 1) % 4], top[index]], color: index % 2 ? color : shift(color, -15)}) }
+    function pyramid({polygons, camera, x, y, z, radius, height, color}) { const b = [[x - radius, y - radius, z - height / 2], [x + radius, y - radius, z - height / 2], [x + radius, y + radius, z - height / 2], [x - radius, y + radius, z - height / 2]]; const p = [x, y, z + height / 2]; b.forEach(function point(point, index) { polygon({polygons, camera, points: [point, b[(index + 1) % 4], p], color: index % 2 ? color : shift(color, -15)}) }) }
+    function addDiamond({polygons, camera, x, y, z, color, radius, alpha}) { const p = project(x, y, z, camera); if (p) polygons.push({depth: p.depth, color, alpha, points: [[p.x - radius, p.y], [p.x, p.y - radius], [p.x + radius, p.y], [p.x, p.y + radius]]}) }
+    function polygon({polygons, camera, points, color}) { const projected = points.map(function point(point) { return project(...point, camera) }); if (!projected.some(function hidden(point) { return !point })) polygons.push({depth: projected.reduce(function total(sum, p) { return sum + p.depth }, 0) / projected.length, color, points: projected}) }
+    function project(x, y, z, camera) { const dx = x - camera.x; const dy = y - camera.y; const forward = dx * Math.cos(camera.heading) + dy * Math.sin(camera.heading); if (forward < .3) return null; return {x: canvas.width / 2 + (-dx * Math.sin(camera.heading) + dy * Math.cos(camera.heading)) * camera.focal / forward, y: camera.horizon + (camera.z - z) * camera.focal / forward, depth: forward} }
+    function draw(shape) { context.globalAlpha = shape.alpha ?? 1; context.fillStyle = shape.color; context.beginPath(); shape.points.forEach(function point(point, index) { index ? context.lineTo(point.x, point.y) : context.moveTo(point.x, point.y) }); context.closePath(); context.fill(); context.globalAlpha = 1 }
+    function crosshair() { context.strokeStyle = '#ffffffcc'; context.beginPath(); context.arc(canvas.width / 2, canvas.height / 2, 8, 0, Math.PI * 2); context.stroke() }
     return {render}
 }
-
-function orientedCorners({x, y, width, length, heading}) {
-    const forward = {x: Math.cos(heading) * length / 2, y: Math.sin(heading) * length / 2}
-    const right = {x: -Math.sin(heading) * width / 2, y: Math.cos(heading) * width / 2}
-    return [[x - forward.x - right.x, y - forward.y - right.y], [x + forward.x - right.x, y + forward.y - right.y], [x + forward.x + right.x, y + forward.y + right.y], [x - forward.x + right.x, y - forward.y + right.y]]
-}
-function pointAhead(x, y, heading, amount) { return {x: x + Math.cos(heading) * amount, y: y + Math.sin(heading) * amount} }
+function corners(x, y, width, length, heading) { const f = ahead(0, 0, heading, length / 2); const r = lateral(0, 0, heading, width / 2); return [[x - f.x - r.x, y - f.y - r.y], [x + f.x - r.x, y + f.y - r.y], [x + f.x + r.x, y + f.y + r.y], [x - f.x + r.x, y - f.y + r.y]] }
+function ahead(x, y, heading, amount) { return {x: x + Math.cos(heading) * amount, y: y + Math.sin(heading) * amount} }
+function lateral(x, y, heading, amount) { return {x: x - Math.sin(heading) * amount, y: y + Math.cos(heading) * amount} }
 function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y) }
-function lighten(color, amount) { return shift(color, amount) }
-function darken(color, amount) { return shift(color, -amount) }
-function shift(color, amount) {
-    const numeric = Number.parseInt(color.slice(1), 16)
-    const channel = function channel(offset) { return Math.max(0, Math.min(255, (numeric >> offset & 255) + amount)).toString(16).padStart(2, '0') }
-    return `#${channel(16)}${channel(8)}${channel(0)}`
-}
-const plainScenery = {heightAt: function heightAt() { return 0 }, features: []}
+function shift(color, amount) { const n = Number.parseInt(color.slice(1), 16); const c = function channel(offset) { return Math.max(0, Math.min(255, (n >> offset & 255) + amount)).toString(16).padStart(2, '0') }; return `#${c(16)}${c(8)}${c(0)}` }

@@ -5,7 +5,7 @@ import { createGame } from '../src/game/create-game.mjs'
 import { createTank, listTankArchetypes } from '../src/generators/create-tank.mjs'
 import { createWave } from '../src/generators/create-wave.mjs'
 import { createFieldTest } from '../src/field-test/create-field-test.mjs'
-import { createScenery } from '../src/generators/create-scenery.mjs'
+import { createCoastalWorld } from '../src/generators/create-coastal-world.mjs'
 
 test('arena generator is deterministic for a saved seed', () => {
     assert.deepEqual(createArena({seed: 'violet', kind: 'islands'}), createArena({seed: 'violet', kind: 'islands'}))
@@ -13,14 +13,16 @@ test('arena generator is deterministic for a saved seed', () => {
     assert.notDeepEqual(createArena({seed: 'violet', kind: 'crossroads'}).walls, createArena({seed: 'violet', kind: 'ring'}).walls)
 })
 
-test('scenery generator creates repeatable natural features and varied ground height', () => {
-    const first = createScenery({seed: 'wild', kind: 'canyon', size: 130})
-    const second = createScenery({seed: 'wild', kind: 'canyon', size: 130})
+test('coastal world generator creates repeatable sea, vegetation and varied ground', () => {
+    const first = createCoastalWorld({seed: 'tideline', size: 130})
+    const second = createCoastalWorld({seed: 'tideline', size: 130})
 
     assert.deepEqual(first.features, second.features)
     assert.equal(first.heightAt(12, 12), second.heightAt(12, 12))
-    assert.equal(first.features.length, 34)
-    assert.ok(new Set(first.features.map(function form(item) { return item.form })).size == 3)
+    assert.ok(first.flora.length > 100)
+    assert.ok(first.cover.length > 10)
+    assert.equal(first.isSea(40, 5), true)
+    assert.equal(first.isSea(40, 90), false)
     assert.notEqual(first.heightAt(12, 12), first.heightAt(25, 25))
 })
 

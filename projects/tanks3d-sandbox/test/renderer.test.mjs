@@ -4,7 +4,8 @@ import { createArena } from '../src/generators/create-arena.mjs'
 import { createTank } from '../src/generators/create-tank.mjs'
 import { createRenderer } from '../src/render/create-renderer.mjs'
 import { createPerspectiveRenderer } from '../src/perspective-test/create-perspective-renderer.mjs'
-import { createScenery } from '../src/generators/create-scenery.mjs'
+import { createCoastalWorld } from '../src/generators/create-coastal-world.mjs'
+import { createCoastalScenario } from '../src/perspective-test/create-coastal-scenario.mjs'
 
 test('renderer consumes the selected arena palette without an implicit global arena', () => {
     const context = createContext()
@@ -39,16 +40,25 @@ test('renderer projects a large field through an explicit player camera', () => 
     assert.ok(context.calls > 0)
 })
 
-test('perspective renderer draws native 3D tank models and a chase camera without a third-party engine', () => {
+test('perspective renderer draws an independent coastal scenario through a chase camera', () => {
     const context = createContext()
     const renderer = createPerspectiveRenderer({canvas: {width: 960, height: 640, getContext: function getContext() { return context }}})
-    const arena = createArena({seed: 'violet', kind: 'canyon', size: 130})
-    const player = createTank({id: 'player', archetype: 'player', x: 12, y: 12})
-    const enemy = createTank({id: 'scout', archetype: 'scout', x: 12, y: 6})
+    const scenario = createCoastalScenario({seed: 'tideline'})
 
-    renderer.render({arena, player, enemies: [enemy], shells: [], effects: [], blocks: [{x: 12, y: 8, hp: 2, alive: true}], scenery: createScenery({seed: 'wild', kind: 'canyon', size: 130})})
+    renderer.render(scenario.api.snapshot())
 
     assert.ok(context.calls > 0)
+})
+
+test('coastal world deterministically separates sea from green land', () => {
+    const first = createCoastalWorld({seed: 'coastal-world', size: 130})
+    const second = createCoastalWorld({seed: 'coastal-world', size: 130})
+
+    assert.equal(first.isSea(40, 5), true)
+    assert.equal(first.isSea(40, 90), false)
+    assert.equal(first.heightAt(40, 90), second.heightAt(40, 90))
+    assert.deepEqual(first.flora, second.flora)
+    assert.ok(first.flora.some(function tree(feature) { return feature.type == 'tree' }))
 })
 
 function createContext() {
