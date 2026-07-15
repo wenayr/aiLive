@@ -5,6 +5,9 @@
 коммитятся. Утверждение считается доказанным только вместе с командой проверки
 и наблюдаемым результатом; предположения отмечаются отдельно.
 
+- [GENETIC_MODULE_FIRST_STREAM.md](./GENETIC_MODULE_FIRST_STREAM.md) —
+  итог первого сравнения и правила второго потока.
+
 - [TANKS3D_COMPARISON.md](./TANKS3D_COMPARISON.md) — первый двухитерационный
   прогон simple browser-product против generator product target.
 - [TANKS3D_V10_COMMON_PASS.md](./TANKS3D_V10_COMMON_PASS.md) — один общий

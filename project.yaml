@@ -2,7 +2,7 @@ schema: product-development-host/v1
 identity:
   id: ai-live
   title: AI Live product and development sandbox host
-  status: TABLEER_PLATFORM_AND_TANKS3D_V14_OPEN_ART_DIRECTION
+  status: GENETIC_MODULE_FIRST_STREAM_AND_WENAY_LIBRARY_BASELINE
 objective: >-
   Develop ordinary product projects through explicit external development
   sandboxes. Start with Tableer while retaining the genetic engine as a small,
@@ -12,6 +12,7 @@ entrypoints:
   foundation: doc/FOUNDATION.md
   genetic_module: doc/GENETIC_MODULE.md
   architecture: doc/PROJECT_AND_DEVELOPMENT_SANDBOXES.md
+  wenay_library_baseline: doc/WENAY_LIBRARY_BASELINE.md
   product_projects:
     - projects/tableer/
     - projects/tanks3d-simple/
@@ -37,6 +38,7 @@ reading_order:
   - doc/FOUNDATION.md
   - doc/GENETIC_MODULE.md
   - doc/PROJECT_AND_DEVELOPMENT_SANDBOXES.md
+  - doc/WENAY_LIBRARY_BASELINE.md
   - development/tableer/AGENTS.md
   - projects/tableer/project.yaml
   - development/tanks3d-sandbox/AGENTS.md
