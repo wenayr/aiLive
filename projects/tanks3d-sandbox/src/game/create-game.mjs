@@ -2,8 +2,8 @@ import { createArena } from '../generators/create-arena.mjs'
 import { createTank } from '../generators/create-tank.mjs'
 import { createWave } from '../generators/create-wave.mjs'
 
-export function createGame({seed = 'violet-arena'} = {}) {
-    const arena = createArena({seed})
+export function createGame({seed = 'violet-arena', mapKind = 'crossroads'} = {}) {
+    const arena = createArena({seed, kind: mapKind})
     const player = createTank({id: 'player', archetype: 'player', x: 6, y: 10})
     let round = 1
     const enemies = createWave({round, spawnPads: arena.spawnPads})
@@ -28,6 +28,7 @@ export function createGame({seed = 'violet-arena'} = {}) {
             shell.x += shell.vx * delta
             shell.y += shell.vy * delta
             shell.life -= delta
+            if (arena.walls.some(function blocked(wall) { return Math.hypot(shell.x - wall[0] - .5, shell.y - wall[1] - .5) < .55 })) shell.life = 0
             const victim = shell.owner == player
                 ? enemies.find(function hit(enemy) { return enemy.alive && distance(shell, enemy) < .5 })
                 : player
@@ -46,6 +47,7 @@ export function createGame({seed = 'violet-arena'} = {}) {
         if (input.right) player.heading += delta * 2.5
         if (input.turretLeft) player.turret -= delta * 3
         if (input.turretRight) player.turret += delta * 3
+        if (input.aim) player.turret = Math.atan2(input.aim.y - player.y, input.aim.x - player.x)
     }
 
     function movePlayer(delta, input) {
@@ -64,7 +66,7 @@ export function createGame({seed = 'violet-arena'} = {}) {
 
     function shoot(owner) {
         if (!owner.alive) return
-        shells.push({owner, x: owner.x, y: owner.y, vx: Math.cos(owner.turret) * 7, vy: Math.sin(owner.turret) * 7, life: 1.4})
+        shells.push({owner, x: owner.x, y: owner.y, vx: Math.cos(owner.turret) * owner.shellSpeed, vy: Math.sin(owner.turret) * owner.shellSpeed, life: 1.4})
     }
 
     function startNextWave() {
@@ -76,7 +78,7 @@ export function createGame({seed = 'violet-arena'} = {}) {
         api: {
             snapshot: function snapshot() { return {arena, player, enemies, shells} },
             status: function status() {
-                return {hp: player.hp, enemies: enemies.filter(alive).length, round, playerAlive: player.alive}
+                return {hp: player.hp, enemies: enemies.filter(alive).length, round, mapKind: arena.kind, playerAlive: player.alive}
             },
         },
         runtime: {update},

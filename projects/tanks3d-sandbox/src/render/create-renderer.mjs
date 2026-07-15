@@ -24,16 +24,18 @@ export function createRenderer({canvas}) {
     function drawBlock(x, y) { diamond(x, y, .65, '#59508b'); diamond(x, y, .02, '#302c5c') }
     function drawOrb(x, y) { const [sx, sy] = project(x, y, .45); context.fillStyle = '#ffe8a0'; context.beginPath(); context.arc(sx, sy, 5, 0, Math.PI * 2); context.fill() }
     function drawTank(subject) {
+        const {model} = subject
         const [x, y] = project(subject.x, subject.y, .15)
         context.save()
         context.translate(x, y)
         context.rotate(subject.heading + Math.PI / 4)
-        context.fillStyle = '#0008'; context.fillRect(-18, 9, 36, 9)
-        context.fillStyle = subject.color; context.fillRect(-17, -10, 34, 20)
-        context.fillStyle = '#201d43'; context.fillRect(-18, 10, 36, 5)
+        context.fillStyle = '#0008'; context.fillRect(-model.bodyLength / 2, 9, model.bodyLength, model.trackWidth + 3)
+        context.fillStyle = '#201d43'; context.fillRect(-model.bodyLength / 2, -model.bodyWidth / 2 - 2, model.bodyLength, model.trackWidth)
+        context.fillRect(-model.bodyLength / 2, model.bodyWidth / 2 - model.trackWidth + 2, model.bodyLength, model.trackWidth)
+        context.fillStyle = subject.color; context.fillRect(-model.bodyLength / 2 + 2, -model.bodyWidth / 2, model.bodyLength - 4, model.bodyWidth)
         context.rotate(subject.turret - subject.heading)
-        context.fillStyle = '#f3efff'; context.fillRect(-3, -26, 6, 26)
-        context.fillStyle = subject.color; context.beginPath(); context.arc(0, 0, 10, 0, Math.PI * 2); context.fill()
+        context.fillStyle = '#f3efff'; context.fillRect(-3, -model.barrelLength, 6, model.barrelLength)
+        context.fillStyle = subject.color; context.beginPath(); context.arc(0, 0, model.turretRadius, 0, Math.PI * 2); context.fill()
         context.restore()
     }
 

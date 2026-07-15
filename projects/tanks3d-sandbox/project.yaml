@@ -2,17 +2,17 @@ schema: product-sandbox/v1
 identity:
   id: tanks3d-sandbox
   title: Tanks 3D generator experiment
-  status: ITERATION_ONE
+  status: ITERATION_THREE_MAPS_MODELS_AND_AIM
 objective: >-
   Build a playable browser game from ordinary product modules whose three real
   repeating resources are generated from compact source-of-truth inputs.
 modules:
   arena_generator:
     path: src/generators/create-arena.mjs
-    responsibility: Produce deterministic walls and safe spawn pads from a seed.
+    responsibility: Produce deterministic map profiles, walls and safe spawn pads from a seed.
   tank_generator:
     path: src/generators/create-tank.mjs
-    responsibility: Produce validated tank entities from named archetypes.
+    responsibility: Produce validated tank entities with physical model parameters from named archetypes.
   wave_generator:
     path: src/generators/create-wave.mjs
     responsibility: Produce enemy spawns from arena pads and a round number.
@@ -28,6 +28,7 @@ acceptance:
     - No agent runtime, genetic memory or development instructions live here.
     - Same arena seed yields the same walls and spawn pads.
     - Generated tanks have a unique id and a known archetype.
+    - Player aim is supplied in world coordinates and controls the barrel direction.
 reading_order:
   - README.md
   - project.yaml

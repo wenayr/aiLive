@@ -1,12 +1,15 @@
 const canvas = document.querySelector('#game')
 const context = canvas.getContext('2d')
 const hud = document.querySelector('#hud')
+const mapPicker = document.querySelector('#map')
 const keys = new Set()
-const arena = {size: 13, walls: [
-    [2, 2], [3, 2], [4, 2], [8, 2], [9, 2], [10, 2],
-    [2, 5], [5, 5], [8, 5], [10, 5], [3, 8], [4, 8],
-    [6, 8], [8, 8], [9, 8], [2, 10], [5, 10], [8, 10], [10, 10],
-]}
+const mapKey = new URLSearchParams(location.search).get('map') ?? 'crossroads'
+const manualMaps = {
+    crossroads: [[2, 2], [3, 2], [4, 2], [8, 2], [9, 2], [10, 2], [2, 5], [5, 5], [8, 5], [10, 5], [3, 8], [4, 8], [6, 8], [8, 8], [9, 8], [2, 10], [5, 10], [8, 10], [10, 10]],
+    ring: [[3, 3], [4, 3], [5, 3], [6, 3], [7, 3], [8, 3], [9, 3], [3, 4], [9, 4], [3, 5], [9, 5], [3, 6], [9, 6], [3, 7], [9, 7], [3, 8], [9, 8], [3, 9], [4, 9], [5, 9], [6, 9], [7, 9], [8, 9], [9, 9]],
+    islands: [[2, 2], [3, 2], [2, 3], [9, 2], [10, 2], [10, 3], [2, 9], [2, 10], [3, 10], [9, 9], [10, 9], [9, 10], [5, 5], [6, 5], [7, 5], [6, 6], [5, 7], [6, 7], [7, 7]],
+}
+const arena = {size: 13, key: manualMaps[mapKey] ? mapKey : 'crossroads', walls: manualMaps[mapKey] ?? manualMaps.crossroads}
 const player = tank('player', 6, 10, '#79e7a9', 1.1)
 const enemies = [
     tank('scout', 1, 1, '#ffba69', 1.5), tank('scout', 11, 1, '#ffba69', 1.5),
@@ -24,15 +27,35 @@ const shells = []
 let lastTime = performance.now()
 let lastShotAt = 0
 let nextReinforcement = 0
+let aim = {x: 6, y: 0}
+
+mapPicker.value = arena.key
+mapPicker.addEventListener('change', function changeMap() {
+    const url = new URL(location.href)
+    url.searchParams.set('map', mapPicker.value)
+    location.assign(url)
+})
 
 window.addEventListener('keydown', function onKeyDown(event) {
     keys.add(event.key.toLowerCase())
     if (event.code == 'Space') event.preventDefault()
 })
 window.addEventListener('keyup', function onKeyUp(event) { keys.delete(event.key.toLowerCase()) })
+canvas.addEventListener('pointermove', function aimTurret(event) {
+    const bounds = canvas.getBoundingClientRect()
+    aim = unproject(
+        (event.clientX - bounds.left) * canvas.width / bounds.width,
+        (event.clientY - bounds.top) * canvas.height / bounds.height,
+    )
+})
 
 function tank(kind, x, y, color, speed) {
-    return {kind, x, y, color, speed, heading: -Math.PI / 2, turret: -Math.PI / 2, hp: kind == 'brute' ? 3 : 1, alive: true}
+    const model = kind == 'ace'
+        ? {bodyLength: 42, bodyWidth: 24, trackWidth: 7, turretRadius: 11, barrelLength: 33, shellSpeed: 9}
+        : kind == 'brute'
+            ? {bodyLength: 38, bodyWidth: 26, trackWidth: 8, turretRadius: 12, barrelLength: 28, shellSpeed: 6}
+            : {bodyLength: 32, bodyWidth: 20, trackWidth: 6, turretRadius: 9, barrelLength: 25, shellSpeed: 7}
+    return {kind, x, y, color, speed, heading: -Math.PI / 2, turret: -Math.PI / 2, hp: kind == 'brute' ? 3 : 1, alive: true, model}
 }
 
 function frame(now) {
@@ -48,6 +71,7 @@ function update(delta, now) {
     if (keys.has('d')) player.heading += delta * 2.5
     if (keys.has('q')) player.turret -= delta * 3
     if (keys.has('e')) player.turret += delta * 3
+    player.turret = Math.atan2(aim.y - player.y, aim.x - player.x)
     const direction = (keys.has('w') ? 1 : 0) - (keys.has('s') ? 1 : 0)
     moveTank(player, Math.cos(player.heading) * direction * delta * 3.2, Math.sin(player.heading) * direction * delta * 3.2)
     if (keys.has(' ') && now - lastShotAt > 360) {
@@ -65,6 +89,7 @@ function update(delta, now) {
         shell.x += shell.vx * delta
         shell.y += shell.vy * delta
         shell.life -= delta
+        if (arena.walls.some(function blocked(wall) { return Math.hypot(shell.x - wall[0] - .5, shell.y - wall[1] - .5) < .55 })) shell.life = 0
         const victim = shell.owner == player ? enemies.find(function hit(enemy) { return enemy.alive && distance(shell, enemy) < .5 }) : player
         if (victim?.alive && shell.owner != victim && distance(shell, victim) < .5) {
             victim.hp -= 1
@@ -78,7 +103,7 @@ function update(delta, now) {
         nextReinforcement += 1
     }
     hud.textContent = player.alive
-        ? `Hull ${player.hp} · hostile tanks ${enemies.filter(function alive(enemy) { return enemy.alive }).length} · manual squad ${nextReinforcement}/3 · manual layout: ${arena.walls.length} walls`
+        ? `Hull ${player.hp} · hostile tanks ${enemies.filter(function alive(enemy) { return enemy.alive }).length} · ${arena.key} · manual squad ${nextReinforcement}/3 · manual layout: ${arena.walls.length} walls`
         : 'Your tank was destroyed. Reload the page to restart.'
 }
 
@@ -93,7 +118,7 @@ function moveTank(subject, dx, dy) {
 
 function shoot(owner) {
     if (!owner.alive) return
-    shells.push({owner, x: owner.x, y: owner.y, vx: Math.cos(owner.turret) * 7, vy: Math.sin(owner.turret) * 7, life: 1.4})
+    shells.push({owner, x: owner.x, y: owner.y, vx: Math.cos(owner.turret) * owner.model.shellSpeed, vy: Math.sin(owner.turret) * owner.model.shellSpeed, life: 1.4})
 }
 
 function draw() {
@@ -107,6 +132,11 @@ function draw() {
 }
 
 function project(x, y, z = 0) { return [480 + (x - y) * 30, 84 + (x + y) * 15 - z * 30] }
+function unproject(screenX, screenY) {
+    const difference = (screenX - 480) / 30
+    const sum = (screenY - 84) / 15
+    return {x: (sum + difference) / 2, y: (sum - difference) / 2}
+}
 function diamond(x, y, z, color) {
     const points = [[x, y], [x + 1, y], [x + 1, y + 1], [x, y + 1]].map(function point(item) { return project(item[0], item[1], z) })
     context.fillStyle = color
@@ -119,16 +149,18 @@ function drawTile(x, y) { diamond(x, y, 0, (x + y) % 2 ? '#1a3b2a' : '#1d4631') 
 function drawBlock(x, y, color) { diamond(x, y, .65, color); diamond(x, y, .02, '#274632') }
 function drawOrb(x, y) { const [sx, sy] = project(x, y, .45); context.fillStyle = '#fff0a2'; context.beginPath(); context.arc(sx, sy, 5, 0, Math.PI * 2); context.fill() }
 function drawTank(subject) {
+    const {model} = subject
     const [x, y] = project(subject.x, subject.y, .15)
     context.save()
     context.translate(x, y)
     context.rotate(subject.heading + Math.PI / 4)
-    context.fillStyle = '#0008'; context.fillRect(-18, 9, 36, 9)
-    context.fillStyle = subject.color; context.fillRect(-17, -10, 34, 20)
-    context.fillStyle = '#163121'; context.fillRect(-18, 10, 36, 5)
+    context.fillStyle = '#0008'; context.fillRect(-model.bodyLength / 2, 9, model.bodyLength, model.trackWidth + 3)
+    context.fillStyle = '#163121'; context.fillRect(-model.bodyLength / 2, -model.bodyWidth / 2 - 2, model.bodyLength, model.trackWidth)
+    context.fillRect(-model.bodyLength / 2, model.bodyWidth / 2 - model.trackWidth + 2, model.bodyLength, model.trackWidth)
+    context.fillStyle = subject.color; context.fillRect(-model.bodyLength / 2 + 2, -model.bodyWidth / 2, model.bodyLength - 4, model.bodyWidth)
     context.rotate(subject.turret - subject.heading)
-    context.fillStyle = '#e8f7ed'; context.fillRect(-3, -26, 6, 26)
-    context.fillStyle = subject.color; context.beginPath(); context.arc(0, 0, 10, 0, Math.PI * 2); context.fill()
+    context.fillStyle = '#e8f7ed'; context.fillRect(-3, -model.barrelLength, 6, model.barrelLength)
+    context.fillStyle = subject.color; context.beginPath(); context.arc(0, 0, model.turretRadius, 0, Math.PI * 2); context.fill()
     context.restore()
 }
 function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y) }

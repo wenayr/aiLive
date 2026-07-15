@@ -14,6 +14,7 @@ export function createWave({round, spawnPads}) {
 }
 
 function chooseArchetype({round, index, count}) {
+    if (round > 3 && index == Math.floor(count / 2)) return 'artillery'
     if (round > 2 && index == 0) return 'brute'
     if (round > 1 && index == count - 1) return 'brute'
     return 'scout'
