@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tanks 3D — sandbox field test</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main>
+        <section class="panel">
+            <p class="eyebrow">VISUAL TEST / SANDBOX</p>
+            <h1>One Tank Field</h1>
+            <p>Генератор выбирает правило карты; каждый блок можно разрушить.</p>
+            <label>Map <select id="map"><option value="crossroads">Crossroads</option><option value="ring">Ring</option><option value="islands">Islands</option><option value="zigzag">Zigzag</option><option value="orchard">Orchard</option><option value="turbine">Turbine</option><option value="canyon">Canyon</option><option value="delta">Delta</option><option value="crater">Crater</option><option value="shards">Shards</option></select></label>
+        </section>
+        <canvas id="game" width="960" height="640" aria-label="Tanks 3D sandbox field test"></canvas>
+        <p id="hud" class="hud"></p>
+        <p class="guide">W/S — вперёд/назад · A/D — корпус · мышь — башня · Space — огонь · P — пауза · R — рестарт</p>
+    </main>
+    <script type="module" src="src/field-test/main.mjs"></script>
+</body>
+</html>

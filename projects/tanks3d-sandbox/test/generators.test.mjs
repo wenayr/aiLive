@@ -4,11 +4,23 @@ import { createArena, listArenaKinds } from '../src/generators/create-arena.mjs'
 import { createGame } from '../src/game/create-game.mjs'
 import { createTank, listTankArchetypes } from '../src/generators/create-tank.mjs'
 import { createWave } from '../src/generators/create-wave.mjs'
+import { createFieldTest } from '../src/field-test/create-field-test.mjs'
 
 test('arena generator is deterministic for a saved seed', () => {
     assert.deepEqual(createArena({seed: 'violet', kind: 'islands'}), createArena({seed: 'violet', kind: 'islands'}))
-    assert.deepEqual(listArenaKinds(), ['crossroads', 'ring', 'islands'])
+    assert.deepEqual(listArenaKinds(), ['crossroads', 'ring', 'islands', 'zigzag', 'orchard', 'turbine', 'canyon', 'delta', 'crater', 'shards'])
     assert.notDeepEqual(createArena({seed: 'violet', kind: 'crossroads'}).walls, createArena({seed: 'violet', kind: 'ring'}).walls)
+})
+
+test('ten generated map kinds have distinct palettes and never place a block on the field tank', () => {
+    const kinds = listArenaKinds()
+    const arenas = kinds.map(function arena(kind) { return createArena({seed: 'field-test', kind}) })
+
+    assert.equal(kinds.length, 10)
+    assert.equal(new Set(arenas.map(function color(arena) { return arena.palette.background })).size, 10)
+    assert.ok(arenas.every(function clearStart(arena) {
+        return !arena.walls.some(function playerStart(wall) { return wall[0] == 6 && wall[1] == 10 })
+    }))
 })
 
 test('arena generator exposes safe core pads as part of the selected map contract', () => {
@@ -89,4 +101,26 @@ test('game turns a defeated enemy into score and a visible combat effect', () =>
     assert.equal(enemy.alive, false)
     assert.equal(game.api.status().score, enemy.bounty)
     assert.equal(game.api.snapshot().effects.length, 1)
+})
+
+test('field test uses body movement, mouse aim and destructible generated blocks', () => {
+    const field = createFieldTest({mapKind: 'turbine'})
+    const snapshot = field.api.snapshot()
+    const player = snapshot.player
+    const block = snapshot.blocks[0]
+    const initialY = player.y
+
+    snapshot.blocks.forEach(function clear(candidate) { candidate.alive = false })
+    field.runtime.update({delta: .1, now: 100, input: {forward: true, aim: {x: 10, y: player.y}}})
+    assert.ok(player.y < initialY)
+    assert.equal(player.turret, 0)
+
+    block.x = player.x
+    block.y = player.y - .35
+    block.hp = 1
+    block.alive = true
+    const destroyedBeforeShot = field.api.status().destroyed
+    field.runtime.update({delta: .05, now: 1000, input: {fire: true, aim: {x: player.x, y: player.y - 4}}})
+    assert.equal(block.alive, false)
+    assert.equal(field.api.status().destroyed, destroyedBeforeShot + 1)
 })

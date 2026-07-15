@@ -1,0 +1,57 @@
+import { createFieldTest } from './create-field-test.mjs'
+import { createRenderer } from '../render/create-renderer.mjs'
+
+const canvas = document.querySelector('#game')
+const hud = document.querySelector('#hud')
+const mapPicker = document.querySelector('#map')
+const mapKind = new URLSearchParams(location.search).get('map') ?? 'crossroads'
+const input = {forward: false, backward: false, left: false, right: false, fire: false, aim: null}
+const controls = {w: 'forward', s: 'backward', a: 'left', d: 'right', ' ': 'fire'}
+const field = createFieldTest({mapKind})
+const renderer = createRenderer({canvas})
+let previous = performance.now()
+let paused = false
+
+mapPicker.value = mapKind
+mapPicker.addEventListener('change', function changeMap() {
+    const url = new URL(location.href)
+    url.searchParams.set('map', mapPicker.value)
+    location.assign(url)
+})
+
+window.addEventListener('keydown', function keyDown(event) {
+    const key = event.key.toLowerCase()
+    if (controls[key]) input[controls[key]] = true
+    if (event.code == 'Space') event.preventDefault()
+    if (!event.repeat && key == 'p') paused = !paused
+    if (!event.repeat && key == 'r') location.reload()
+})
+window.addEventListener('keyup', function keyUp(event) {
+    const key = event.key.toLowerCase()
+    if (controls[key]) input[controls[key]] = false
+})
+canvas.addEventListener('pointermove', function aimTurret(event) {
+    const bounds = canvas.getBoundingClientRect()
+    input.aim = unproject(
+        (event.clientX - bounds.left) * canvas.width / bounds.width,
+        (event.clientY - bounds.top) * canvas.height / bounds.height,
+    )
+})
+
+function frame(now) {
+    const delta = Math.min((now - previous) / 1000, .04)
+    previous = now
+    if (!paused) field.runtime.update({delta, now, input})
+    renderer.render(field.api.snapshot())
+    const status = field.api.status()
+    hud.textContent = `${paused ? 'PAUSED · ' : ''}${status.mapKind} · objects ${status.objects} · destroyed ${status.destroyed}`
+    requestAnimationFrame(frame)
+}
+
+function unproject(screenX, screenY) {
+    const difference = (screenX - 480) / 30
+    const sum = (screenY - 84) / 15
+    return {x: (sum + difference) / 2, y: (sum - difference) / 2}
+}
+
+requestAnimationFrame(frame)

@@ -12,4 +12,5 @@ test('simple game deliberately keeps its initial content in one runtime file', a
     assert.match(source, /effects/)
     assert.match(source, /score/)
     assert.match(source, /function drawTank/)
+    assert.match(source, /keys\.has\('w'\)/)
 })

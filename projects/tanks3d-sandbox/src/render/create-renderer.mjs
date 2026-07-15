@@ -1,16 +1,20 @@
 export function createRenderer({canvas}) {
     const context = canvas.getContext('2d')
 
-    function render({arena, player, enemies, shells, effects, cores}) {
+    function render({arena, player, enemies, shells, effects, cores, blocks}) {
         context.clearRect(0, 0, canvas.width, canvas.height)
         context.fillStyle = arena.palette.background
         context.fillRect(0, 0, canvas.width, canvas.height)
         for (let y = 0; y < arena.size; y += 1) for (let x = 0; x < arena.size; x += 1) drawTile({x, y, arena})
-        arena.walls.forEach(function wall(item) { drawBlock({x: item[0], y: item[1], arena}) })
+        const visibleBlocks = blocks ?? arena.walls.map(function wall(item) { return {x: item[0] + .5, y: item[1] + .5, hp: 1, alive: true} })
+        visibleBlocks.filter(function intact(block) { return block.alive }).forEach(function block(item) {
+            drawBlock({x: item.x - .5, y: item.y - .5, arena, hp: item.hp})
+        })
         cores.filter(function available(core) { return !core.collected }).forEach(function core(item) { drawCore({core: item, arena}) })
         shells.forEach(function shell(item) { drawOrb(item.x, item.y) })
         effects.forEach(drawEffect)
-        ;[...enemies, player].filter(function alive(item) { return item.alive }).sort(function depth(a, b) { return a.x + a.y - b.x - b.y }).forEach(function tank(subject) {
+        const subjects = [...enemies, player].filter(function alive(item) { return item.alive }).sort(function depth(a, b) { return a.x + a.y - b.x - b.y })
+        subjects.forEach(function tank(subject) {
             drawTank({subject, isPlayer: subject == player})
         })
     }
@@ -25,7 +29,10 @@ export function createRenderer({canvas}) {
         context.fill()
     }
     function drawTile({x, y, arena}) { diamond(x, y, 0, (x + y) % 2 ? arena.palette.tileA : arena.palette.tileB) }
-    function drawBlock({x, y, arena}) { diamond(x, y, .65, arena.palette.wall); diamond(x, y, .02, '#302c5c') }
+    function drawBlock({x, y, arena, hp}) {
+        diamond(x, y, .65, hp > 1 ? '#f6d08a' : arena.palette.wall)
+        diamond(x, y, .02, '#302c5c')
+    }
     function drawCore({core, arena}) {
         const [x, y] = project(core.x, core.y, .7)
         context.fillStyle = arena.palette.core

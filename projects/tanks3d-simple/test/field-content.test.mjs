@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict'
+import test from 'node:test'
+import { readFile } from 'node:fs/promises'
+
+test('simple field test keeps ten manual maps, one tank controls and destructible blocks in one file', async () => {
+    const source = await readFile(new URL('../field-test.js', import.meta.url), 'utf8')
+
+    for (const kind of ['crossroads', 'ring', 'islands', 'zigzag', 'orchard', 'turbine', 'canyon', 'delta', 'crater', 'shards']) {
+        assert.match(source, new RegExp(`${kind}: map`))
+    }
+    assert.match(source, /if \(keys\.has\('a'\)\) player\.heading/)
+    assert.match(source, /if \(keys\.has\('d'\)\) player\.heading/)
+    assert.match(source, /player\.turret = Math\.atan2/)
+    assert.match(source, /function damageBlock/)
+})

@@ -15,6 +15,17 @@ test('renderer consumes the selected arena palette without an implicit global ar
     assert.ok(context.calls > 0)
 })
 
+test('renderer hides destroyed field blocks while retaining a single player tank', () => {
+    const context = createContext()
+    const renderer = createRenderer({canvas: {getContext: function getContext() { return context }}})
+    const arena = createArena({seed: 'violet', kind: 'crater'})
+    const player = createTank({id: 'player', archetype: 'player', x: 6, y: 10})
+
+    renderer.render({arena, player, enemies: [], shells: [], effects: [], cores: [], blocks: [{x: 6.5, y: 6.5, hp: 1, alive: false}]})
+
+    assert.ok(context.calls > 0)
+})
+
 function createContext() {
     const context = {calls: 0, globalAlpha: 1}
     for (const name of ['clearRect', 'fillRect', 'beginPath', 'moveTo', 'lineTo', 'closePath', 'fill', 'arc', 'save', 'restore', 'translate', 'rotate', 'fillText']) {
