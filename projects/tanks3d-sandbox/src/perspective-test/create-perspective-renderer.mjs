@@ -1,17 +1,21 @@
 export function createPerspectiveRenderer({canvas}) {
     const context = canvas.getContext('2d')
 
-    function render({arena, player, enemies, shells, effects, blocks}) {
+    function render({arena, player, enemies, shells, effects, blocks, scenery = plainScenery}) {
         const camera = createCamera(player)
         const polygons = []
-        context.fillStyle = arena.palette.background
+        const sky = context.createLinearGradient(0, 0, 0, canvas.height)
+        sky.addColorStop(0, '#0c1625')
+        sky.addColorStop(1, arena.palette.background)
+        context.fillStyle = sky
         context.fillRect(0, 0, canvas.width, canvas.height)
-        addGround({arena, camera, polygons})
+        addGround({arena, camera, polygons, scenery})
         blocks.filter(function nearby(block) { return block.alive && distance(block, player) < 22 }).forEach(function block(block) {
-            addBox({polygons, camera, x: block.x, y: block.y, z: .8, width: .9, length: .9, height: block.hp > 1 ? 1.6 : 1.05, heading: 0, color: block.hp > 1 ? '#f5c978' : arena.palette.wall})
+            addBox({polygons, camera, x: block.x, y: block.y, z: scenery.heightAt(block.x, block.y) + .8, width: .9, length: .9, height: block.hp > 1 ? 1.6 : 1.05, heading: 0, color: block.hp > 1 ? '#f5c978' : arena.palette.wall})
         })
-        enemies.filter(function nearby(enemy) { return enemy.alive && distance(enemy, player) < 26 }).forEach(function enemy(enemy) { addTank({polygons, camera, subject: enemy}) })
-        addTank({polygons, camera, subject: player})
+        scenery.features.filter(function nearby(feature) { return distance(feature, player) < 28 }).forEach(function feature(feature) { addScenery({polygons, camera, feature, scenery}) })
+        enemies.filter(function nearby(enemy) { return enemy.alive && distance(enemy, player) < 26 }).forEach(function enemy(enemy) { addTank({polygons, camera, subject: enemy, scenery}) })
+        addTank({polygons, camera, subject: player, scenery})
         shells.forEach(function shell(shell) { addOrb({polygons, camera, shell}) })
         effects.forEach(function effect(effect) { addEffect({polygons, camera, effect}) })
         polygons.sort(function backToFront(a, b) { return b.depth - a.depth }).forEach(drawPolygon)
@@ -23,21 +27,45 @@ export function createPerspectiveRenderer({canvas}) {
         return {x: player.x - forward.x * 5.2, y: player.y - forward.y * 5.2, z: 4.6, heading: player.heading, focal: 520, horizon: 235}
     }
 
-    function addGround({arena, camera, polygons}) {
+    function addGround({arena, camera, polygons, scenery}) {
         const centerX = Math.floor(camera.x)
         const centerY = Math.floor(camera.y)
         for (let y = centerY - 16; y <= centerY + 16; y += 1) for (let x = centerX - 16; x <= centerX + 16; x += 1) {
             if (x < 0 || y < 0 || x >= arena.size || y >= arena.size) continue
-            addPolygon({polygons, camera, points: [[x, y, 0], [x + 1, y, 0], [x + 1, y + 1, 0], [x, y + 1, 0]], color: (x + y) % 2 ? arena.palette.tileA : arena.palette.tileB})
+            addPolygon({polygons, camera, points: [[x, y, scenery.heightAt(x, y)], [x + 1, y, scenery.heightAt(x + 1, y)], [x + 1, y + 1, scenery.heightAt(x + 1, y + 1)], [x, y + 1, scenery.heightAt(x, y + 1)]], color: (x + y) % 2 ? arena.palette.tileA : arena.palette.tileB})
         }
     }
 
-    function addTank({polygons, camera, subject}) {
+    function addTank({polygons, camera, subject, scenery}) {
         const scale = subject.archetype == 'brute' ? 1.22 : subject.archetype == 'scout' ? .82 : 1
-        addBox({polygons, camera, x: subject.x, y: subject.y, z: .36, width: .82 * scale, length: 1.22 * scale, height: .48 * scale, heading: subject.heading, color: subject.color})
-        addBox({polygons, camera, x: subject.x, y: subject.y, z: .82 * scale, width: .55 * scale, length: .55 * scale, height: .35 * scale, heading: subject.turret, color: lighten(subject.color, 18)})
+        const height = scenery.heightAt(subject.x, subject.y)
+        addBox({polygons, camera, x: subject.x, y: subject.y, z: height + .36, width: .82 * scale, length: 1.22 * scale, height: .48 * scale, heading: subject.heading, color: subject.color})
+        addBox({polygons, camera, x: subject.x, y: subject.y, z: height + .82 * scale, width: .55 * scale, length: .55 * scale, height: .35 * scale, heading: subject.turret, color: lighten(subject.color, 18)})
         const barrel = pointAhead(subject.x, subject.y, subject.turret, .56 * scale)
-        addBox({polygons, camera, x: barrel.x, y: barrel.y, z: 1.0 * scale, width: .14 * scale, length: subject.archetype == 'artillery' ? 1.15 : .82, height: .14 * scale, heading: subject.turret, color: '#eef8ff'})
+        addBox({polygons, camera, x: barrel.x, y: barrel.y, z: height + 1.0 * scale, width: .14 * scale, length: subject.archetype == 'artillery' ? 1.15 : .82, height: .14 * scale, heading: subject.turret, color: '#eef8ff'})
+    }
+
+    function addScenery({polygons, camera, feature, scenery}) {
+        const height = scenery.heightAt(feature.x, feature.y)
+        const colors = feature.tone == 'warm' ? ['#9e673d', '#d9a359'] : ['#2e746f', '#63aaa0']
+        if (feature.form == 'shrub') {
+            addPyramid({polygons, camera, x: feature.x, y: feature.y, z: height + feature.scale * .4, radius: feature.scale * .7, height: feature.scale * .8, color: colors[1]})
+            return
+        }
+        if (feature.form == 'spire') {
+            addPyramid({polygons, camera, x: feature.x, y: feature.y, z: height + feature.scale, radius: feature.scale * .42, height: feature.scale * 2, color: colors[0]})
+            return
+        }
+        addBox({polygons, camera, x: feature.x, y: feature.y, z: height + feature.scale * .22, width: feature.scale * 1.4, length: feature.scale * .8, height: feature.scale * .45, heading: feature.scale, color: colors[0]})
+    }
+
+    function addPyramid({polygons, camera, x, y, z, radius, height, color}) {
+        const base = [[x - radius, y - radius, z - height / 2], [x + radius, y - radius, z - height / 2], [x + radius, y + radius, z - height / 2], [x - radius, y + radius, z - height / 2]]
+        const peak = [x, y, z + height / 2]
+        addPolygon({polygons, camera, points: [base[0], base[1], peak], color: darken(color, 18)})
+        addPolygon({polygons, camera, points: [base[1], base[2], peak], color})
+        addPolygon({polygons, camera, points: [base[2], base[3], peak], color: lighten(color, 12)})
+        addPolygon({polygons, camera, points: [base[3], base[0], peak], color: darken(color, 8)})
     }
 
     function addBox({polygons, camera, x, y, z, width, length, height, heading, color}) {
@@ -118,3 +146,4 @@ function shift(color, amount) {
     const channel = function channel(offset) { return Math.max(0, Math.min(255, (numeric >> offset & 255) + amount)).toString(16).padStart(2, '0') }
     return `#${channel(16)}${channel(8)}${channel(0)}`
 }
+const plainScenery = {heightAt: function heightAt() { return 0 }, features: []}

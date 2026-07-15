@@ -21,6 +21,7 @@
 Для V13-проверки перспективного 3D открой
 [`perspective-test.html`](./perspective-test.html). Камера следует за корпусом,
 а объёмные модели используют те же product generators карты и архетипов.
+В V14 этот экран получает самостоятельный seed-based scenery resource.
 
 Однопроходный общий brief из десяти user-visible векторов лежит во внешней
 [`development-песочнице`](../../development/tanks3d-sandbox/BRIEF_V10.md).

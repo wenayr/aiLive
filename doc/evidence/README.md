@@ -19,3 +19,5 @@
   camera и исправленная изометрическая башня.
 - [TANKS3D_V13_PERSPECTIVE.md](./TANKS3D_V13_PERSPECTIVE.md) — нативная
   перспективная 3D-проверка в обеих версиях.
+- [TANKS3D_V14_OPEN_ART_DIRECTION.md](./TANKS3D_V14_OPEN_ART_DIRECTION.md) —
+  один открытый brief, давший две независимые художественные интерпретации.
