@@ -8,11 +8,19 @@ export function createGame({seed = 'violet-arena', mapKind = 'crossroads'} = {})
     let round = 1
     const enemies = createWave({round, spawnPads: arena.spawnPads})
     const shells = []
+    const cores = arena.corePads.map(function createCore(pad, index) {
+        return {id: `core-${index + 1}`, x: pad[0] + .5, y: pad[1] + .5, collected: false}
+    })
     let lastShotAt = 0
+    let boostCharges = 0
+    let boostUntil = 0
+    let boostHeld = false
 
     function update({delta, now, input}) {
         rotatePlayer(delta, input)
-        movePlayer(delta, input)
+        collectCores()
+        activateBoost({now, input})
+        movePlayer(delta, now, input)
         if (input.fire && now - lastShotAt > 340) {
             shoot(player)
             lastShotAt = now
@@ -50,9 +58,10 @@ export function createGame({seed = 'violet-arena', mapKind = 'crossroads'} = {})
         if (input.aim) player.turret = Math.atan2(input.aim.y - player.y, input.aim.x - player.x)
     }
 
-    function movePlayer(delta, input) {
+    function movePlayer(delta, now, input) {
         const direction = (input.forward ? 1 : 0) - (input.backward ? 1 : 0)
-        move(player, Math.cos(player.heading) * direction * delta * player.speed, Math.sin(player.heading) * direction * delta * player.speed)
+        const speed = now < boostUntil ? player.speed * 1.8 : player.speed
+        move(player, Math.cos(player.heading) * direction * delta * speed, Math.sin(player.heading) * direction * delta * speed)
     }
 
     function move(subject, dx, dy) {
@@ -74,11 +83,38 @@ export function createGame({seed = 'violet-arena', mapKind = 'crossroads'} = {})
         enemies.push(...createWave({round, spawnPads: arena.spawnPads}))
     }
 
+    function collectCores() {
+        cores.filter(function available(core) { return !core.collected }).forEach(function collect(core) {
+            if (distance(player, core) < .65) {
+                core.collected = true
+                boostCharges += 1
+            }
+        })
+    }
+
+    function activateBoost({now, input}) {
+        if (input.boost && !boostHeld && boostCharges > 0) {
+            boostCharges -= 1
+            boostUntil = now + 680
+        }
+        boostHeld = Boolean(input.boost)
+    }
+
     return {
         api: {
-            snapshot: function snapshot() { return {arena, player, enemies, shells} },
+            snapshot: function snapshot() { return {arena, player, enemies, shells, cores, boostUntil} },
             status: function status() {
-                return {hp: player.hp, enemies: enemies.filter(alive).length, round, mapKind: arena.kind, playerAlive: player.alive}
+                return {
+                    hp: player.hp,
+                    enemies: enemies.filter(alive).length,
+                    round,
+                    mapKind: arena.kind,
+                    cores: cores.filter(function collected(core) { return core.collected }).length,
+                    coreTotal: cores.length,
+                    boostCharges,
+                    boostActive: boostUntil > 0,
+                    playerAlive: player.alive,
+                }
             },
         },
         runtime: {update},

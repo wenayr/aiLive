@@ -28,6 +28,8 @@ let lastTime = performance.now()
 let lastShotAt = 0
 let nextReinforcement = 0
 let aim = {x: 6, y: 0}
+let boostUntil = 0
+let boostReadyAt = 0
 
 mapPicker.value = arena.key
 mapPicker.addEventListener('change', function changeMap() {
@@ -73,7 +75,13 @@ function update(delta, now) {
     if (keys.has('e')) player.turret += delta * 3
     player.turret = Math.atan2(aim.y - player.y, aim.x - player.x)
     const direction = (keys.has('w') ? 1 : 0) - (keys.has('s') ? 1 : 0)
-    moveTank(player, Math.cos(player.heading) * direction * delta * 3.2, Math.sin(player.heading) * direction * delta * 3.2)
+    if (keys.has('shift') && now >= boostReadyAt) {
+        boostUntil = now + 620
+        boostReadyAt = now + 2400
+    }
+    const boostActive = now < boostUntil
+    const driveSpeed = boostActive ? 5.8 : 3.2
+    moveTank(player, Math.cos(player.heading) * direction * delta * driveSpeed, Math.sin(player.heading) * direction * delta * driveSpeed)
     if (keys.has(' ') && now - lastShotAt > 360) {
         shoot(player)
         lastShotAt = now
@@ -103,7 +111,7 @@ function update(delta, now) {
         nextReinforcement += 1
     }
     hud.textContent = player.alive
-        ? `Hull ${player.hp} · hostile tanks ${enemies.filter(function alive(enemy) { return enemy.alive }).length} · ${arena.key} · manual squad ${nextReinforcement}/3 · manual layout: ${arena.walls.length} walls`
+        ? `Hull ${player.hp} · hostile tanks ${enemies.filter(function alive(enemy) { return enemy.alive }).length} · ${arena.key} · turbo ${boostActive ? 'ACTIVE' : now >= boostReadyAt ? 'READY' : 'cooling'} · manual squad ${nextReinforcement}/3`
         : 'Your tank was destroyed. Reload the page to restart.'
 }
 
@@ -154,6 +162,12 @@ function drawTank(subject) {
     context.save()
     context.translate(x, y)
     context.rotate(subject.heading + Math.PI / 4)
+    if (subject == player && performance.now() < boostUntil) {
+        context.fillStyle = '#b6fff0'
+        context.fillRect(model.bodyLength / 2 - 3, -5, 22, 10)
+        context.fillStyle = '#70e7ff'
+        context.fillRect(model.bodyLength / 2 + 13, -3, 12, 6)
+    }
     context.fillStyle = '#0008'; context.fillRect(-model.bodyLength / 2, 9, model.bodyLength, model.trackWidth + 3)
     context.fillStyle = '#163121'; context.fillRect(-model.bodyLength / 2, -model.bodyWidth / 2 - 2, model.bodyLength, model.trackWidth)
     context.fillRect(-model.bodyLength / 2, model.bodyWidth / 2 - model.trackWidth + 2, model.bodyLength, model.trackWidth)

@@ -1,12 +1,13 @@
 export function createRenderer({canvas}) {
     const context = canvas.getContext('2d')
 
-    function render({arena, player, enemies, shells}) {
+    function render({arena, player, enemies, shells, cores}) {
         context.clearRect(0, 0, canvas.width, canvas.height)
         context.fillStyle = '#10102a'
         context.fillRect(0, 0, canvas.width, canvas.height)
         for (let y = 0; y < arena.size; y += 1) for (let x = 0; x < arena.size; x += 1) drawTile(x, y)
         arena.walls.forEach(function wall(item) { drawBlock(item[0], item[1]) })
+        cores.filter(function available(core) { return !core.collected }).forEach(drawCore)
         shells.forEach(function shell(item) { drawOrb(item.x, item.y) })
         ;[...enemies, player].filter(function alive(item) { return item.alive }).sort(function depth(a, b) { return a.x + a.y - b.x - b.y }).forEach(drawTank)
     }
@@ -22,6 +23,17 @@ export function createRenderer({canvas}) {
     }
     function drawTile(x, y) { diamond(x, y, 0, (x + y) % 2 ? '#22214c' : '#29275b') }
     function drawBlock(x, y) { diamond(x, y, .65, '#59508b'); diamond(x, y, .02, '#302c5c') }
+    function drawCore(core) {
+        const [x, y] = project(core.x, core.y, .7)
+        context.fillStyle = '#8ff9ee'
+        context.beginPath()
+        context.moveTo(x, y - 12)
+        context.lineTo(x + 8, y)
+        context.lineTo(x, y + 12)
+        context.lineTo(x - 8, y)
+        context.closePath()
+        context.fill()
+    }
     function drawOrb(x, y) { const [sx, sy] = project(x, y, .45); context.fillStyle = '#ffe8a0'; context.beginPath(); context.arc(sx, sy, 5, 0, Math.PI * 2); context.fill() }
     function drawTank(subject) {
         const {model} = subject

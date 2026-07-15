@@ -5,8 +5,8 @@ const canvas = document.querySelector('#game')
 const hud = document.querySelector('#hud')
 const mapPicker = document.querySelector('#map')
 const mapKind = new URLSearchParams(location.search).get('map') ?? 'crossroads'
-const input = {forward: false, backward: false, left: false, right: false, turretLeft: false, turretRight: false, fire: false, aim: null}
-const controls = {w: 'forward', s: 'backward', a: 'left', d: 'right', q: 'turretLeft', e: 'turretRight', ' ': 'fire'}
+const input = {forward: false, backward: false, left: false, right: false, turretLeft: false, turretRight: false, fire: false, boost: false, aim: null}
+const controls = {w: 'forward', s: 'backward', a: 'left', d: 'right', q: 'turretLeft', e: 'turretRight', ' ': 'fire', shift: 'boost'}
 const game = createGame({mapKind})
 const renderer = createRenderer({canvas})
 let previous = performance.now()
@@ -42,7 +42,7 @@ function frame(now) {
     renderer.render(game.api.snapshot())
     const status = game.api.status()
     hud.textContent = status.playerAlive
-        ? `Hull ${status.hp} · hostile tanks ${status.enemies} · ${status.mapKind} · generated round ${status.round} · arena seed: violet-arena`
+        ? `Hull ${status.hp} · hostile tanks ${status.enemies} · cores ${status.cores}/${status.coreTotal} · boost ${status.boostCharges} · ${status.mapKind} · round ${status.round}`
         : 'Your tank was destroyed. Reload the page to restart.'
     requestAnimationFrame(frame)
 }

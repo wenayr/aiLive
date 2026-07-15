@@ -12,11 +12,11 @@ const arenaProfiles = {
                 || (y == 3 || y == size - 4) && x >= 3 && x <= size - 4
         })
     },
-    islands: function createIslands({size, random}) {
+    islands: function createIslands({size, random, corePads}) {
         return coordinates(size, function islands(x, y) {
             const quadrant = (x < size / 2 ? 0 : 1) + (y < size / 2 ? 0 : 2)
             const distance = Math.abs(x - (quadrant % 2 ? size - 3 : 2)) + Math.abs(y - (quadrant > 1 ? size - 3 : 2))
-            return distance < 2 || distance > 3 && random() > .86
+            return !containsPad(corePads, x, y) && (distance < 2 || distance > 3 && random() > .86)
         })
     },
 }
@@ -26,7 +26,8 @@ export function createArena({seed, kind = 'crossroads', size = 13}) {
     if (!profile) throw new Error(`Unknown arena kind: ${kind}`)
     const random = createSeededRandom(`${seed}:${kind}`)
     const spawnPads = [[1, 1], [size - 2, 1], [1, size - 2], [size - 2, size - 2], [Math.floor(size / 2), 1]]
-    return {seed, kind, size, walls: profile({size, random}), spawnPads}
+    const corePads = createCorePads({kind, size})
+    return {seed, kind, size, walls: profile({size, random, corePads}), spawnPads, corePads}
 }
 
 export function listArenaKinds() {
@@ -39,6 +40,16 @@ function coordinates(size, predicate) {
         for (let x = 2; x < size - 2; x += 1) if (predicate(x, y)) walls.push([x, y])
     }
     return walls
+}
+
+function createCorePads({kind, size}) {
+    const center = Math.floor(size / 2)
+    if (kind == 'islands') return [[center, 3], [3, center], [size - 4, center]]
+    return [[center, 2], [2, center], [size - 3, center]]
+}
+
+function containsPad(pads, x, y) {
+    return pads.some(function samePad(pad) { return pad[0] == x && pad[1] == y })
 }
 
 function createSeededRandom(seed) {

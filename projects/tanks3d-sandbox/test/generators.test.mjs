@@ -11,6 +11,15 @@ test('arena generator is deterministic for a saved seed', () => {
     assert.notDeepEqual(createArena({seed: 'violet', kind: 'crossroads'}).walls, createArena({seed: 'violet', kind: 'ring'}).walls)
 })
 
+test('arena generator exposes safe core pads as part of the selected map contract', () => {
+    const arena = createArena({seed: 'violet', kind: 'islands'})
+
+    assert.equal(arena.corePads.length, 3)
+    assert.ok(arena.corePads.every(function clear(pad) {
+        return !arena.walls.some(function sameWall(wall) { return wall[0] == pad[0] && wall[1] == pad[1] })
+    }))
+})
+
 test('tank generator exposes only known archetypes with stable ids', () => {
     assert.deepEqual(listTankArchetypes(), ['player', 'scout', 'brute', 'artillery'])
     const scout = createTank({id: 'one', archetype: 'scout', x: 1, y: 2})
@@ -48,4 +57,20 @@ test('game runtime steers the player barrel toward the supplied world aim point'
 
     assert.equal(game.api.snapshot().player.turret, 0)
     assert.equal(game.api.status().mapKind, 'ring')
+})
+
+test('game collects an arena core and converts it into one released turbo burst', () => {
+    const game = createGame({mapKind: 'crossroads'})
+    const core = game.api.snapshot().cores[0]
+    const player = game.api.snapshot().player
+    player.x = core.x
+    player.y = core.y
+
+    game.runtime.update({delta: 0, now: 100, input: {boost: false}})
+    assert.equal(game.api.status().cores, 1)
+    assert.equal(game.api.status().boostCharges, 1)
+
+    game.runtime.update({delta: 0, now: 200, input: {boost: true}})
+    assert.equal(game.api.status().boostCharges, 0)
+    assert.ok(game.api.snapshot().boostUntil > 200)
 })
