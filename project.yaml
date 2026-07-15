@@ -2,7 +2,7 @@ schema: product-development-host/v1
 identity:
   id: ai-live
   title: AI Live product and development sandbox host
-  status: TABLEER_PLATFORM_AND_TANKS3D_V12_LARGE_FIELD
+  status: TABLEER_PLATFORM_AND_TANKS3D_V13_PERSPECTIVE
 objective: >-
   Develop ordinary product projects through explicit external development
   sandboxes. Start with Tableer while retaining the genetic engine as a small,

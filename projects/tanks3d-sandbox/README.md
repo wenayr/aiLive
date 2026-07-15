@@ -18,5 +18,9 @@
 [`field-test.html`](./field-test.html). В нём доступны десять карт; генератор
 сам выбирает правило и палитру каждой карты.
 
+Для V13-проверки перспективного 3D открой
+[`perspective-test.html`](./perspective-test.html). Камера следует за корпусом,
+а объёмные модели используют те же product generators карты и архетипов.
+
 Однопроходный общий brief из десяти user-visible векторов лежит во внешней
 [`development-песочнице`](../../development/tanks3d-sandbox/BRIEF_V10.md).

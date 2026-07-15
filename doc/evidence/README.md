@@ -17,3 +17,5 @@
   формат честного token-ledger для следующих сравнительных прогонов.
 - [TANKS3D_V12_LARGE_FIELD.md](./TANKS3D_V12_LARGE_FIELD.md) — большой мир,
   camera и исправленная изометрическая башня.
+- [TANKS3D_V13_PERSPECTIVE.md](./TANKS3D_V13_PERSPECTIVE.md) — нативная
+  перспективная 3D-проверка в обеих версиях.
