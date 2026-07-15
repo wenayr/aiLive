@@ -2,7 +2,7 @@ schema: product-sandbox/v1
 identity:
   id: tanks3d-sandbox
   title: Tanks 3D generator experiment
-  status: ITERATION_NINE_V14_LANDSCAPE
+  status: ITERATION_EIGHT_V13_PERSPECTIVE
 objective: >-
   Build a playable browser game from ordinary product modules whose three real
   repeating resources are generated from compact source-of-truth inputs.
@@ -34,7 +34,6 @@ acceptance:
     - The field test renders a 130 by 130 world through a player camera.
     - Field blocks and enemy tanks each have hit points and can be destroyed.
     - A separate perspective test renders a native 3D chase-camera view with varied tank models.
-    - Perspective terrain is deterministic and includes curved landmarks near the starting camera.
 reading_order:
   - README.md
   - project.yaml

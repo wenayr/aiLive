@@ -5,23 +5,11 @@ import { createGame } from '../src/game/create-game.mjs'
 import { createTank, listTankArchetypes } from '../src/generators/create-tank.mjs'
 import { createWave } from '../src/generators/create-wave.mjs'
 import { createFieldTest } from '../src/field-test/create-field-test.mjs'
-import { createTerrain } from '../src/generators/create-terrain.mjs'
 
 test('arena generator is deterministic for a saved seed', () => {
     assert.deepEqual(createArena({seed: 'violet', kind: 'islands'}), createArena({seed: 'violet', kind: 'islands'}))
     assert.deepEqual(listArenaKinds(), ['crossroads', 'ring', 'islands', 'zigzag', 'orchard', 'turbine', 'canyon', 'delta', 'crater', 'shards'])
     assert.notDeepEqual(createArena({seed: 'violet', kind: 'crossroads'}).walls, createArena({seed: 'violet', kind: 'ring'}).walls)
-})
-
-test('terrain generator makes deterministic elevation and varied curved-landscape landmarks', () => {
-    const terrain = createTerrain({seed: 'violet', kind: 'canyon', size: 130})
-
-    const repeated = createTerrain({seed: 'violet', kind: 'canyon', size: 130})
-    assert.deepEqual(terrain.landmarks, repeated.landmarks)
-    assert.equal(terrain.heightAt(12, 12), repeated.heightAt(12, 12))
-    assert.equal(terrain.landmarks.length, 26)
-    assert.ok(new Set(terrain.landmarks.map(function kind(item) { return item.kind })).size == 4)
-    assert.notEqual(terrain.heightAt(12, 12), terrain.heightAt(25, 25))
 })
 
 test('ten generated map kinds have distinct palettes and never place a block on the field tank', () => {

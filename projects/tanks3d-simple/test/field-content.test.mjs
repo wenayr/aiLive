@@ -20,13 +20,10 @@ test('simple field test keeps ten manual maps, one tank controls and destructibl
 test('simple perspective test keeps an independent 3D camera, models and destructible combat', async () => {
     const source = await readFile(new URL('../perspective-test.js', import.meta.url), 'utf8')
 
-    assert.match(source, /landscape 3D/)
+    assert.match(source, /perspective 3D/)
     assert.match(source, /function project\(x, y, z, camera\)/)
     assert.match(source, /function model\(polygons, camera, subject\)/)
     assert.match(source, /function box\(polygons, camera/)
     assert.match(source, /function damage\(target\)/)
     assert.match(source, /const enemies = \[tank\('scout'/)
-    assert.match(source, /function heightAt\(x, y\)/)
-    assert.match(source, /function cylinder\(polygons, camera/)
-    assert.match(source, /function arc\(polygons, camera/)
 })
